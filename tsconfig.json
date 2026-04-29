@@ -1,0 +1,3 @@
+{
+  "extends": "@lens/config/tsconfig.base.json"
+}
