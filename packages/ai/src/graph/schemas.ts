@@ -11,10 +11,15 @@ export const ParsedIdeaSchema = z.object({
 
 export const ResearchResultSchema = z.object({
   competitors: z.array(
-    z.object({ name: z.string(), description: z.string(), url: z.string() }),
-  ),
+    z.object({
+      name: z.string(),
+      description: z.string(),
+      url: z.string().optional(),
+    })
+  ).optional().default([]),
   marketContext: z.string(),
-  searchQueries: z.array(z.string()),
+  searchQueries: z.array(z.string()).optional().default([]),
+  opportunities: z.array(z.string()).optional().default([]),
 });
 
 export const CritiqueResultSchema = z.object({
