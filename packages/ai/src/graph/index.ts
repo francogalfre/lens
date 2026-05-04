@@ -1,11 +1,11 @@
 import type { RunnableConfig } from "@langchain/core/runnables";
 import { END, START, StateGraph } from "@langchain/langgraph";
-import { runCritic } from "@/agents/critic";
-import { runFeasibility } from "@/agents/feasibility";
-import { runOpportunity } from "@/agents/opportunity";
-import { runParser } from "@/agents/parser";
-import { runResearcher } from "@/agents/researcher";
-import { runSynthesis } from "@/agents/synthesis";
+import { runCritic } from "../agents/critic";
+import { runFeasibility } from "../agents/feasibility";
+import { runOpportunity } from "../agents/opportunity";
+import { runParser } from "../agents/parser";
+import { runResearcher } from "../agents/researcher";
+import { runSynthesis } from "../agents/synthesis";
 import { AnalysisState } from "./state";
 
 type State = typeof AnalysisState.State;

@@ -3,7 +3,7 @@ import {
 	HumanMessage,
 	SystemMessage,
 } from "@langchain/core/messages";
-import type { Message } from "@/llm";
+import type { Message } from "../types/llm";
 
 export const convertMessageToLangChain = (message: Message) => {
 	if (message.role === "system") return new SystemMessage(message.content);

@@ -1,9 +1,9 @@
 import type { RunnableConfig } from "@langchain/core/runnables";
 import { createAgent } from "langchain";
-import { PARSER_PROMPT } from "@/agents/parser/prompt";
-import { type ParsedIdea, ParsedIdeaSchema } from "@/graph/schemas";
-import { createLogger } from "@/logger";
-import { getModel } from "@/utils";
+import { PARSER_PROMPT } from "./prompt";
+import { type ParsedIdea, ParsedIdeaSchema } from "../../graph/schemas";
+import { createLogger } from "../../logger";
+import { getModel } from "../../utils";
 
 export async function runParser(
 	idea: string,

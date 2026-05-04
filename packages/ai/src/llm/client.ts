@@ -1,10 +1,10 @@
-import type { LLMResponse } from "@/types/llm";
+import type { LLMResponse } from "../types/llm";
 import type {
 	InvokeLLMRequest,
 	InvokeLLMWithStructureRequest,
 	StreamLLMRequest,
-} from "@/types/llm-functions";
-import { convertMessageToLangChain, getModel } from "@/utils";
+} from "../types/llm-functions";
+import { convertMessageToLangChain, getModel } from "../utils";
 
 export const invokeLLM = async (
 	request: InvokeLLMRequest,

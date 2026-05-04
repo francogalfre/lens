@@ -1,6 +1,6 @@
 import type { RunnableConfig } from "@langchain/core/runnables";
 import { createAgent } from "langchain";
-import { SYNTHESIS_PROMPT } from "@/agents/synthesis/prompt";
+import { SYNTHESIS_PROMPT } from "./prompt";
 import {
 	type CritiqueResult,
 	type FeasibilityResult,
@@ -9,9 +9,9 @@ import {
 	type ResearchResult,
 	type SynthesisResult,
 	SynthesisResultSchema,
-} from "@/graph/schemas";
-import { createLogger } from "@/logger";
-import { getModel } from "@/utils";
+} from "../../graph/schemas";
+import { createLogger } from "../../logger";
+import { getModel } from "../../utils";
 
 interface SynthesisInput {
 	parsedIdea: ParsedIdea;

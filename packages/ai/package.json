@@ -11,7 +11,9 @@
 			"default": "./src/llm/index.ts"
 		}
 	},
-	"scripts": {},
+	"scripts": {
+		"check-types": "tsc --noEmit"
+	},
 	"dependencies": {
 		"@langchain/community": "^1.1.27",
 		"@langchain/core": "^1.1.42",

@@ -1,12 +1,12 @@
 import type { RunnableConfig } from "@langchain/core/runnables";
 import { createAgent } from "langchain";
-import { OPPORTUNITY_PROMPT } from "@/agents/opportunity/prompt";
+import { OPPORTUNITY_PROMPT } from "./prompt";
 import {
 	type OpportunityResult,
 	OpportunityResultSchema,
-} from "@/graph/schemas";
-import { createLogger } from "@/logger";
-import { getModel } from "@/utils";
+} from "../../graph/schemas";
+import { createLogger } from "../../logger";
+import { getModel } from "../../utils";
 
 export async function runOpportunity(
 	idea: string,

@@ -1,5 +1,5 @@
 import { ChatOpenRouter } from "@langchain/openrouter";
-import { DEFAULT_LLM_CONFIG, FREE_MODELS } from "@/llm/models";
+import { DEFAULT_LLM_CONFIG, FREE_MODELS } from "../llm/models";
 import { getApiKey } from "./apiKey";
 
 const isRetryableError = (error: unknown): boolean => {

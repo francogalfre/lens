@@ -3,10 +3,8 @@ export type {
 	LLMResponse,
 	Message,
 	MessageRole,
-	ModelKey,
 } from "./llm";
 export type {
-	CreateLLMRequest,
 	InvokeLLMRequest,
 	InvokeLLMWithStructureRequest,
 	StreamLLMRequest,

@@ -1,12 +1,19 @@
 import { Serper } from "@langchain/community/tools/serper";
 import type { RunnableConfig } from "@langchain/core/runnables";
 import { createAgent } from "langchain";
-import { RESEARCHER_PROMPT } from "@/agents/researcher/prompt";
-import { type ResearchResult, ResearchResultSchema } from "@/graph/schemas";
-import { createLogger } from "@/logger";
-import { getModel } from "@/utils";
+import { RESEARCHER_PROMPT } from "./prompt";
+import { type ResearchResult, ResearchResultSchema } from "../../graph/schemas";
+import { createLogger } from "../../logger";
+import { getModel } from "../../utils";
 
-const searchTool = new Serper(process.env.SERPER_API_KEY);
+let searchTool: Serper | null = null;
+
+function getSearchTool(): Serper {
+	if (!searchTool) {
+		searchTool = new Serper(process.env.SERPER_API_KEY);
+	}
+	return searchTool;
+}
 
 export async function runResearcher(
 	idea: string,
@@ -20,7 +27,7 @@ export async function runResearcher(
 		const response = await getModel(async (llm) => {
 			const agent = createAgent({
 				model: llm,
-				tools: [searchTool],
+				tools: [getSearchTool()],
 				systemPrompt: RESEARCHER_PROMPT,
 			});
 

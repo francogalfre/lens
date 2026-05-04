@@ -1,9 +1,9 @@
 import type { RunnableConfig } from "@langchain/core/runnables";
 import { createAgent } from "langchain";
-import { CRITIC_PROMPT } from "@/agents/critic/prompt";
-import { type CritiqueResult, CritiqueResultSchema } from "@/graph/schemas";
-import { createLogger } from "@/logger";
-import { getModel } from "@/utils";
+import { CRITIC_PROMPT } from "./prompt";
+import { type CritiqueResult, CritiqueResultSchema } from "../../graph/schemas";
+import { createLogger } from "../../logger";
+import { getModel } from "../../utils";
 
 export async function runCritic(
 	idea: string,

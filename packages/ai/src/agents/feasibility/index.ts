@@ -1,12 +1,12 @@
 import type { RunnableConfig } from "@langchain/core/runnables";
 import { createAgent } from "langchain";
-import { FEASIBILITY_PROMPT } from "@/agents/feasibility/prompt";
+import { FEASIBILITY_PROMPT } from "./prompt";
 import {
 	type FeasibilityResult,
 	FeasibilityResultSchema,
-} from "@/graph/schemas";
-import { createLogger } from "@/logger";
-import { getModel } from "@/utils";
+} from "../../graph/schemas";
+import { createLogger } from "../../logger";
+import { getModel } from "../../utils";
 
 export async function runFeasibility(
 	idea: string,
