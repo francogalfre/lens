@@ -1,8 +1,6 @@
+import type { RunnableConfig } from "@langchain/core/runnables";
 import { createAgent } from "langchain";
-
-import { getModel } from "@/utils";
 import { SYNTHESIS_PROMPT } from "@/agents/synthesis/prompt";
-
 import {
 	type CritiqueResult,
 	type FeasibilityResult,
@@ -12,6 +10,8 @@ import {
 	type SynthesisResult,
 	SynthesisResultSchema,
 } from "@/graph/schemas";
+import { createLogger } from "@/logger";
+import { getModel } from "@/utils";
 
 interface SynthesisInput {
 	parsedIdea: ParsedIdea;
@@ -21,29 +21,44 @@ interface SynthesisInput {
 	feasibility: FeasibilityResult;
 }
 
-export async function runSynthesis(input: SynthesisInput): Promise<SynthesisResult> {
-	const response = await getModel(async (llm) => {
-		const agent = createAgent({
-			model: llm,
-			tools: [],
-			systemPrompt: SYNTHESIS_PROMPT,
-		});
+export async function runSynthesis(
+	input: SynthesisInput,
+	config?: RunnableConfig,
+): Promise<SynthesisResult> {
+	const logger = createLogger(config);
 
-		return agent.invoke({
-			messages: [
+	try {
+		logger.info("Starting synthesis");
+
+		const response = await getModel(async (llm) => {
+			const agent = createAgent({
+				model: llm,
+				tools: [],
+				systemPrompt: SYNTHESIS_PROMPT,
+			});
+
+			return agent.invoke(
 				{
-					role: "user",
-					content: JSON.stringify(input, null, 2),
+					messages: [{ role: "user", content: JSON.stringify(input, null, 2) }],
 				},
-			],
+				config,
+			);
 		});
-	});
 
-	const lastMessage = response.messages[response.messages.length - 1];
-	const content =
-		typeof lastMessage?.content === "string"
-			? lastMessage.content
-			: String(lastMessage?.content);
+		const lastMessage = response.messages[response.messages.length - 1];
+		const content =
+			typeof lastMessage?.content === "string"
+				? lastMessage.content
+				: String(lastMessage?.content);
 
-	return SynthesisResultSchema.parse(JSON.parse(content));
+		const result = SynthesisResultSchema.parse(JSON.parse(content));
+		logger.info("Synthesis completed", { score: result.overallScore });
+
+		return result;
+	} catch (error) {
+		logger.error("Synthesis failed", {
+			error: error instanceof Error ? error.message : String(error),
+		});
+		throw error;
+	}
 }
