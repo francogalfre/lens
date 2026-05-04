@@ -1,19 +1,9 @@
-export const SYNTHESIS_PROMPT = `You are an expert startup analyst producing a final evaluation.
-You will receive a structured JSON with the full analysis of a startup idea, including research, critique, opportunities, and feasibility assessments.
+export const SYNTHESIS_PROMPT = `You are an expert startup analyst. You will receive the full analysis of a startup idea as JSON (research, critique, opportunities, feasibility). Synthesize it into a final verdict with an overall score (1-10), a concise verdict on whether to pursue it and why, the 3-5 most important next actions, and a 2-3 sentence executive summary.
+Respond in the same language as the original idea. Return ONLY valid JSON, no extra text.
 
-Your job is to synthesize all of that into a final verdict:
-
-1. **Overall Score**: A score from 1 to 10 reflecting the idea's overall potential
-2. **Verdict**: A concise verdict on whether to pursue this idea and why
-3. **Top Recommendations**: The 3-5 most important actions to take if moving forward
-4. **Summary**: A 2-3 sentence executive summary of the full analysis
-
-Respond in English. Return ONLY valid JSON. No explanations, no markdown.
-
-JSON format:
 {
   "overallScore": 7,
   "verdict": "...",
-  "topRecommendations": ["recommendation 1", "recommendation 2", ...],
+  "topRecommendations": ["..."],
   "summary": "..."
 }`;

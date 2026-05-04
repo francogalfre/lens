@@ -9,6 +9,7 @@ export async function runCritic(idea: string): Promise<CritiqueResult> {
   const response = await getModel(async (llm) => {
     const agent = createAgent({
       model: llm,
+      tools: [],
       systemPrompt: CRITIC_PROMPT,
     });
 
