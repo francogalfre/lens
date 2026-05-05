@@ -1,13 +1,13 @@
 export interface RunConfig {
-  configurable: {
-    sessionId: string;
-  };
+	configurable: {
+		sessionId: string;
+	};
 }
 
 export function toRunConfig(sessionId: string): RunConfig {
-  return {
-    configurable: {
-      sessionId,
-    },
-  };
+	return {
+		configurable: {
+			sessionId,
+		},
+	};
 }

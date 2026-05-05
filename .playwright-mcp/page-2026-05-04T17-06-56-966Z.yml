@@ -1,0 +1,26 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - navigation [ref=e5]:
+          - link "Home" [ref=e6] [cursor=pointer]:
+            - /url: /
+          - link "Dashboard" [ref=e7] [cursor=pointer]:
+            - /url: /dashboard
+        - button "Toggle theme" [ref=e9]:
+          - img
+          - generic [ref=e10]: Toggle theme
+      - separator [ref=e12]
+    - main [ref=e13]:
+      - generic [ref=e14]:
+        - generic [ref=e15]:
+          - heading "What's your idea?" [level=1] [ref=e16]
+          - paragraph [ref=e17]: Describe it briefly — our agents will analyze the market, risks, and opportunities.
+        - generic [ref=e18]:
+          - textbox "e.g. An app that uses AI to summarize Zoom meetings automatically..." [ref=e19]
+          - generic [ref=e20]:
+            - generic [ref=e21]: ⌘ + Enter to submit
+            - button "Analyze →" [disabled]
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e27] [cursor=pointer]:
+    - img [ref=e28]

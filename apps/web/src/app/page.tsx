@@ -1,18 +1,19 @@
 "use client";
 
-import { useState } from "react";
 import { Button } from "@lens/ui/components/button";
 import { Textarea } from "@lens/ui/components/textarea";
+import { Loader2 } from "lucide-react";
+import { useState } from "react";
 import {
+	type AgentState,
 	AgentTimeline,
-	type AgentUpdate,
 } from "@/components/analysis/agent-timeline";
 import { SynthesisCard } from "@/components/analysis/synthesis-card";
 
 type Status = "idle" | "running" | "complete" | "error";
 
 interface StreamEvent {
-	type: "start" | "agent" | "complete" | "error";
+	type: "start" | "nodeStart" | "agent" | "complete" | "error";
 	sessionId?: string;
 	agent?: string;
 	data?: unknown;
@@ -26,21 +27,21 @@ interface SynthesisResult {
 	summary: string;
 }
 
+const AGENT_ORDER = [
+	"parser",
+	"researcher",
+	"critic",
+	"opportunity",
+	"feasibility_agent",
+	"synthesis_agent",
+];
+
 export default function Home() {
 	const [idea, setIdea] = useState("");
 	const [status, setStatus] = useState<Status>("idle");
-	const [agents, setAgents] = useState<AgentUpdate[]>([]);
+	const [agents, setAgents] = useState<AgentState[]>([]);
 	const [synthesis, setSynthesis] = useState<SynthesisResult | null>(null);
 	const [errorMsg, setErrorMsg] = useState<string | null>(null);
-
-	const AGENT_ORDER = [
-		"parser",
-		"researcher",
-		"critic",
-		"opportunity",
-		"feasibility_agent",
-		"synthesis_agent",
-	];
 
 	async function handleSubmit() {
 		if (!idea.trim() || status === "running") return;
@@ -95,11 +96,19 @@ export default function Home() {
 		if (event.type === "start") {
 			setAgents(
 				AGENT_ORDER.map((name) => ({
-					agent: name,
-					status: "running" as const,
+					name,
+					status: "pending" as const,
 					data: null,
-					label: name,
 				})),
+			);
+		}
+
+		if (event.type === "nodeStart" && event.agent) {
+			const agentName = event.agent;
+			setAgents((prev) =>
+				prev.map((a) =>
+					a.name === agentName ? { ...a, status: "running" } : a,
+				),
 			);
 		}
 
@@ -109,9 +118,7 @@ export default function Home() {
 
 			setAgents((prev) =>
 				prev.map((a) =>
-					a.agent === agentName
-						? { ...a, status: "complete", data }
-						: a,
+					a.name === agentName ? { ...a, status: "complete", data } : a,
 				),
 			);
 
@@ -137,12 +144,12 @@ export default function Home() {
 		<main className="flex flex-col items-center px-4 py-16">
 			<div className="w-full max-w-2xl">
 				<div className="mb-8 text-center">
-					<h1 className="text-3xl font-semibold tracking-tight">
+					<h1 className="font-semibold text-3xl tracking-tight">
 						What&apos;s your idea?
 					</h1>
-					<p className="text-muted-foreground mt-2 text-sm">
-						Describe it briefly — our agents will analyze the market,
-						risks, and opportunities.
+					<p className="mt-2 text-muted-foreground text-sm">
+						Describe it briefly — our agents will analyze the market, risks, and
+						opportunities.
 					</p>
 				</div>
 
@@ -161,7 +168,7 @@ export default function Home() {
 						}}
 					/>
 					<div className="flex items-center justify-between">
-						<span className="text-muted-foreground font-mono text-xs">
+						<span className="font-mono text-muted-foreground text-xs">
 							{isRunning ? "Analysis in progress..." : "⌘ + Enter to submit"}
 						</span>
 						<Button
@@ -171,7 +178,7 @@ export default function Home() {
 						>
 							{isRunning ? (
 								<span className="flex items-center gap-2">
-									<span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+									<Loader2 className="h-3 w-3 animate-spin" />
 									Analyzing
 								</span>
 							) : (
@@ -182,7 +189,7 @@ export default function Home() {
 				</div>
 
 				{errorMsg && (
-					<div className="mt-4 rounded-md border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-500">
+					<div className="mt-4 rounded-md border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-500 text-sm">
 						{errorMsg}
 					</div>
 				)}

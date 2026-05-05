@@ -6,7 +6,7 @@ export const analysisRouter = router({
 	analyze: publicProcedure
 		.input(z.object({ rawIdea: z.string() }))
 		.mutation(async ({ input }) => {
-			const sessionId = `session-${Date.now()}`;
+			const sessionId = `session-${Date.now()}-${crypto.randomUUID()}`;
 			const logger = createLogger(toRunConfig(sessionId));
 			const updates: Record<string, unknown>[] = [];
 

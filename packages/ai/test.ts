@@ -1,6 +1,6 @@
-import { NodeSDK } from "@opentelemetry/sdk-node";
-import { LangfuseSpanProcessor } from "@langfuse/otel";
 import { CallbackHandler } from "@langfuse/langchain";
+import { LangfuseSpanProcessor } from "@langfuse/otel";
+import { NodeSDK } from "@opentelemetry/sdk-node";
 import { analysisGraph, toRunConfig } from "./src/index";
 
 const sdk = new NodeSDK({

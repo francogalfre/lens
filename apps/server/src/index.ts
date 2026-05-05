@@ -1,5 +1,5 @@
-import { analysisGraph, createLogger, toRunConfig } from "@lens/ai";
 import { trpcServer } from "@hono/trpc-server";
+import { analysisGraph, createLogger, toRunConfig } from "@lens/ai";
 import { createContext } from "@lens/api/context";
 import { appRouter } from "@lens/api/routers/index";
 import { auth } from "@lens/auth";
@@ -32,45 +32,79 @@ app.post("/api/analysis/stream", async (c) => {
 
 	const sessionId = `session-${Date.now()}`;
 	const logger_ = createLogger(toRunConfig(sessionId));
+	const encoder = new TextEncoder();
+	const { readable, writable } = new TransformStream<Uint8Array, Uint8Array>();
+	const writer = writable.getWriter();
 
-	const lines: string[] = [];
-	lines.push(JSON.stringify({ type: "start", sessionId }));
+	let closed = false;
 
-	try {
-		logger_.info("Streaming started");
-
-		const analysisStream = await analysisGraph.stream(
-			{ rawIdea },
-			{
-				streamMode: "updates",
-				...toRunConfig(sessionId),
-			},
-		);
-
-		for await (const update of analysisStream) {
-			const nodeName = Object.keys(update)[0];
-			if (nodeName) {
-				lines.push(JSON.stringify({ type: "agent", agent: nodeName, data: update }));
-			}
+	const emit = async (data: Record<string, unknown>) => {
+		if (closed) return;
+		try {
+			await writer.write(encoder.encode(`${JSON.stringify(data)}\n`));
+		} catch {
+			closed = true;
 		}
+	};
 
-		lines.push(JSON.stringify({ type: "complete" }));
-		logger_.info("Streaming completed");
-	} catch (error) {
-		logger_.error("Streaming failed", {
-			error: error instanceof Error ? error.message : String(error),
-		});
-		lines.push(
-			JSON.stringify({
-				type: "error",
-				error: error instanceof Error ? error.message : "Unknown error",
-			}),
-		);
-	}
+	const closeWriter = async () => {
+		if (closed) return;
+		closed = true;
+		try {
+			await writer.close();
+		} catch {
+			// already closed by the client disconnect or timeout
+		}
+	};
 
-	return c.text(lines.join("\n"), {
+	void (async () => {
+		try {
+			await emit({ type: "start", sessionId });
+			logger_.info("Streaming started");
+
+			const analysisStream = await analysisGraph.stream(
+				{ rawIdea },
+				{
+					streamMode: ["custom", "updates"] as unknown as "updates",
+					...toRunConfig(sessionId),
+				},
+			);
+
+			for await (const event of analysisStream as unknown as AsyncIterable<
+				[string, unknown]
+			>) {
+				if (closed) break;
+				const [mode, chunk] = event;
+
+				if (mode === "custom") {
+					const custom = chunk as { type: string; agent: string };
+					if (custom?.type === "nodeStart") {
+						await emit({ type: "nodeStart", agent: custom.agent });
+					}
+				} else if (mode === "updates") {
+					const nodeName = Object.keys(chunk as object)[0];
+					if (nodeName) {
+						await emit({ type: "agent", agent: nodeName, data: chunk });
+					}
+				}
+			}
+
+			await emit({ type: "complete" });
+			logger_.info("Streaming completed");
+		} catch (error) {
+			const msg = error instanceof Error ? error.message : String(error);
+			logger_.error("Streaming failed", { error: msg });
+			await emit({ type: "error", error: msg });
+		} finally {
+			await closeWriter();
+		}
+	})();
+
+	return new Response(readable, {
 		headers: {
 			"Content-Type": "application/x-ndjson",
+			"Cache-Control": "no-cache",
+			"X-Accel-Buffering": "no",
 		},
 	});
 });
@@ -89,4 +123,8 @@ app.get("/", (c) => {
 	return c.text("OK");
 });
 
-export default app;
+// idleTimeout: 0 disables Bun's 10s idle connection timeout, required for long-running streams
+export default {
+	fetch: app.fetch.bind(app),
+	idleTimeout: 0,
+};

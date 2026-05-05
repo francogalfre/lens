@@ -1,5 +1,5 @@
 import type { RunnableConfig } from "@langchain/core/runnables";
-import { END, START, StateGraph } from "@langchain/langgraph";
+import { END, getWriter, START, StateGraph } from "@langchain/langgraph";
 import { runCritic } from "../agents/critic";
 import { runFeasibility } from "../agents/feasibility";
 import { runOpportunity } from "../agents/opportunity";
@@ -10,44 +10,62 @@ import { AnalysisState } from "./state";
 
 type State = typeof AnalysisState.State;
 
-const parserNode = async (state: State, config: RunnableConfig) => ({
-	parsedIdea: await runParser(state.rawIdea, config),
-	completedAgents: ["parser"],
-});
+const parserNode = async (state: State, config: RunnableConfig) => {
+	getWriter()?.({ type: "nodeStart", agent: "parser" });
+	return {
+		parsedIdea: await runParser(state.rawIdea, config),
+		completedAgents: ["parser"],
+	};
+};
 
-const researcherNode = async (state: State, config: RunnableConfig) => ({
-	research: await runResearcher(state.rawIdea, config),
-	completedAgents: ["researcher"],
-});
+const researcherNode = async (state: State, config: RunnableConfig) => {
+	getWriter()?.({ type: "nodeStart", agent: "researcher" });
+	return {
+		research: await runResearcher(state.rawIdea, config),
+		completedAgents: ["researcher"],
+	};
+};
 
-const criticNode = async (state: State, config: RunnableConfig) => ({
-	critique: await runCritic(state.rawIdea, config),
-	completedAgents: ["critic"],
-});
+const criticNode = async (state: State, config: RunnableConfig) => {
+	getWriter()?.({ type: "nodeStart", agent: "critic" });
+	return {
+		critique: await runCritic(state.rawIdea, config),
+		completedAgents: ["critic"],
+	};
+};
 
-const opportunityNode = async (state: State, config: RunnableConfig) => ({
-	opportunities: await runOpportunity(state.rawIdea, config),
-	completedAgents: ["opportunity"],
-});
+const opportunityNode = async (state: State, config: RunnableConfig) => {
+	getWriter()?.({ type: "nodeStart", agent: "opportunity" });
+	return {
+		opportunities: await runOpportunity(state.rawIdea, config),
+		completedAgents: ["opportunity"],
+	};
+};
 
-const feasibilityNode = async (state: State, config: RunnableConfig) => ({
-	feasibility: await runFeasibility(state.rawIdea, config),
-	completedAgents: ["feasibility"],
-});
+const feasibilityNode = async (state: State, config: RunnableConfig) => {
+	getWriter()?.({ type: "nodeStart", agent: "feasibility_agent" });
+	return {
+		feasibility: await runFeasibility(state.rawIdea, config),
+		completedAgents: ["feasibility"],
+	};
+};
 
-const synthesisNode = async (state: State, config: RunnableConfig) => ({
-	synthesis: await runSynthesis(
-		{
-			parsedIdea: state.parsedIdea!,
-			research: state.research!,
-			critique: state.critique!,
-			opportunities: state.opportunities!,
-			feasibility: state.feasibility!,
-		},
-		config,
-	),
-	completedAgents: ["synthesis"],
-});
+const synthesisNode = async (state: State, config: RunnableConfig) => {
+	getWriter()?.({ type: "nodeStart", agent: "synthesis_agent" });
+	return {
+		synthesis: await runSynthesis(
+			{
+				parsedIdea: state.parsedIdea!,
+				research: state.research!,
+				critique: state.critique!,
+				opportunities: state.opportunities!,
+				feasibility: state.feasibility!,
+			},
+			config,
+		),
+		completedAgents: ["synthesis"],
+	};
+};
 
 export const analysisGraph = new StateGraph(AnalysisState)
 	.addNode("parser", parserNode)

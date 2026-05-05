@@ -1,10 +1,10 @@
 import { Serper } from "@langchain/community/tools/serper";
 import type { RunnableConfig } from "@langchain/core/runnables";
 import { createAgent } from "langchain";
-import { RESEARCHER_PROMPT } from "./prompt";
 import { type ResearchResult, ResearchResultSchema } from "../../graph/schemas";
 import { createLogger } from "../../logger";
 import { getModel } from "../../utils";
+import { RESEARCHER_PROMPT } from "./prompt";
 
 let searchTool: Serper | null = null;
 
