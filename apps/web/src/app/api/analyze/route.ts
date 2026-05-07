@@ -12,9 +12,16 @@ export async function POST(req: NextRequest) {
 
 	const upstream = await fetch(`${SERVER_URL}/api/analysis/stream`, {
 		method: "POST",
-		headers: { "Content-Type": "application/json" },
+		headers: {
+			"Content-Type": "application/json",
+			cookie: req.headers.get("cookie") ?? "",
+		},
 		body: JSON.stringify({ rawIdea: body.rawIdea }),
 	});
+
+	if (upstream.status === 401) {
+		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+	}
 
 	if (!upstream.ok || !upstream.body) {
 		return NextResponse.json({ error: "Upstream error" }, { status: 502 });

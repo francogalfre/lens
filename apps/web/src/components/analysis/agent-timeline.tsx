@@ -237,7 +237,9 @@ function AgentContent({ agent, data }: { agent: string; data: unknown }) {
 		return (
 			<BlurFade duration={0.35}>
 				<div className="space-y-4">
-					{c.weaknesses && <BulletList label="Weaknesses" items={c.weaknesses} />}
+					{c.weaknesses && (
+						<BulletList label="Weaknesses" items={c.weaknesses} />
+					)}
 					{c.risks && <BulletList label="Risks" items={c.risks} />}
 					{c.deadlyAssumptions && (
 						<BulletList

@@ -3,12 +3,14 @@
 import { Button } from "@lens/ui/components/button";
 import { Textarea } from "@lens/ui/components/textarea";
 import { Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import {
 	type AgentState,
 	AgentTimeline,
 } from "@/components/analysis/agent-timeline";
 import { SynthesisCard } from "@/components/analysis/synthesis-card";
+import { authClient } from "@/lib/auth-client";
 
 type Status = "idle" | "running" | "complete" | "error";
 
@@ -43,8 +45,27 @@ export default function Home() {
 	const [synthesis, setSynthesis] = useState<SynthesisResult | null>(null);
 	const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+	const router = useRouter();
+	const { data: session, isPending: isSessionPending } =
+		authClient.useSession();
+
+	useEffect(() => {
+		const saved = sessionStorage.getItem("pendingIdea");
+		if (saved) {
+			setIdea(saved);
+			sessionStorage.removeItem("pendingIdea");
+		}
+	}, []); // only on mount
+
 	async function handleSubmit() {
 		if (!idea.trim() || status === "running") return;
+
+		if (!session && !isSessionPending) {
+			sessionStorage.setItem("pendingIdea", idea);
+			router.push("/login?callbackUrl=/");
+			return;
+		}
+		if (isSessionPending) return;
 
 		setStatus("running");
 		setAgents([]);
@@ -57,6 +78,12 @@ export default function Home() {
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ rawIdea: idea }),
 			});
+
+			if (response.status === 401) {
+				sessionStorage.setItem("pendingIdea", idea);
+				router.push("/login?callbackUrl=/");
+				return;
+			}
 
 			if (!response.ok || !response.body) {
 				throw new Error("Failed to connect to analysis service");
@@ -159,7 +186,7 @@ export default function Home() {
 						onChange={(e) => setIdea(e.target.value)}
 						placeholder="e.g. An app that uses AI to summarize Zoom meetings automatically..."
 						rows={4}
-						disabled={isRunning}
+						disabled={isRunning || isSessionPending}
 						className="resize-none text-sm"
 						onKeyDown={(e) => {
 							if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {

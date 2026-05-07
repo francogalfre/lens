@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { NumberTicker } from "@lens/ui/components/number-ticker";
+import { useEffect, useState } from "react";
 
 interface SynthesisData {
 	overallScore: number;
@@ -56,7 +56,7 @@ export function SynthesisCard({ synthesis }: { synthesis: SynthesisData }) {
 				: "bg-red-50 dark:bg-red-950/30";
 
 	return (
-		<div className="animate-in fade-in slide-in-from-bottom-4 mt-4 w-full max-w-2xl rounded-lg border duration-500">
+		<div className="fade-in slide-in-from-bottom-4 mt-4 w-full max-w-2xl animate-in rounded-lg border duration-500">
 			<div className="border-b px-4 py-3">
 				<span className="font-mono text-[11px] text-muted-foreground uppercase tracking-widest">
 					Analysis result
@@ -70,7 +70,7 @@ export function SynthesisCard({ synthesis }: { synthesis: SynthesisData }) {
 					<div className="shrink-0 text-center">
 						<NumberTicker
 							value={score}
-							className={`font-mono text-4xl font-semibold leading-none ${scoreColor}`}
+							className={`font-mono font-semibold text-4xl leading-none ${scoreColor}`}
 						/>
 						<span className="block font-mono text-muted-foreground text-xs">
 							/ 10
@@ -98,7 +98,7 @@ export function SynthesisCard({ synthesis }: { synthesis: SynthesisData }) {
 					</div>
 
 					{synthesis.topRecommendations.length > 0 && (
-						<div className="animate-in fade-in duration-700">
+						<div className="fade-in animate-in duration-700">
 							<span className="font-mono text-[11px] text-muted-foreground uppercase tracking-widest">
 								Recommendations
 							</span>
