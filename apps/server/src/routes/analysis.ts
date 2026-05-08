@@ -11,7 +11,10 @@ async function emit(
 	await writer.write(encoder.encode(`${JSON.stringify(data)}\n`));
 }
 
-export async function streamAnalysis(c: HonoContext, userId: string): Promise<Response> {
+export async function streamAnalysis(
+	c: HonoContext,
+	userId: string,
+): Promise<Response> {
 	const body = await c.req.json<{ rawIdea?: string }>();
 
 	if (!body.rawIdea?.trim()) {
@@ -54,7 +57,7 @@ export async function streamAnalysis(c: HonoContext, userId: string): Promise<Re
 			const analysisStream = await analysisGraph.stream(
 				{ rawIdea },
 				{
-					streamMode: ["custom", "updates"] as unknown as "updates",
+					streamMode: ["custom", "updates"] as ("custom" | "updates")[],
 					...toRunConfig(sessionId),
 				},
 			);

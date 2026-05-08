@@ -1,60 +1,60 @@
 import type { RunnableConfig } from "@langchain/core/runnables";
-import { createAgent } from "langchain";
-import { type ParsedIdea, ParsedIdeaSchema } from "../../graph/schemas";
-import { createLogger } from "../../logger";
-import { getModel } from "../../utils";
+import { z } from "zod";
+
+import { createModel } from "@/utils/model";
 import { PARSER_PROMPT } from "./prompt";
 
-export type ParserResult = ParsedIdea | { validationError: string };
+const ParserOutputSchema = z.object({
+	validationError: z.string().optional(),
+	problem: z.string().optional(),
+	solution: z.string().optional(),
+	targetAudience: z.string().optional(),
+	techDomain: z.string().optional(),
+	category: z.string().optional(),
+	summary: z.string().optional(),
+});
+
+export type ParserResult =
+	| { validationError: string }
+	| {
+			problem: string;
+			solution: string;
+			targetAudience: string;
+			techDomain: string;
+			category: string;
+			summary: string;
+	  };
 
 export async function runParser(
 	idea: string,
 	config?: RunnableConfig,
 ): Promise<ParserResult> {
-	const logger = createLogger(config);
+	const model = createModel(512);
+	const raw = await model.withStructuredOutput(ParserOutputSchema).invoke(
+		[
+			{ role: "system", content: PARSER_PROMPT },
+			{ role: "user", content: idea },
+		],
+		config,
+	);
 
-	try {
-		logger.info("Starting parser", { ideaLength: idea.length });
-
-		const response = await getModel(async (llm) => {
-			const agent = createAgent({
-				model: llm,
-				tools: [],
-				systemPrompt: PARSER_PROMPT,
-			});
-
-			return agent.invoke(
-				{ messages: [{ role: "user", content: idea }] },
-				config,
-			);
-		});
-
-		const lastMessage = response.messages[response.messages.length - 1];
-		const content =
-			typeof lastMessage?.content === "string"
-				? lastMessage.content
-				: String(lastMessage?.content);
-
-		const data = JSON.parse(content);
-
-		if ("validationError" in data) {
-			logger.info("Parser rejected input", { reason: data.validationError });
-			return { validationError: data.validationError };
-		}
-
-		const parsed = ParsedIdeaSchema.parse(data);
-
-		if (!parsed.problem.trim() || !parsed.solution.trim()) {
-			return { validationError: "This does not appear to be a valid startup or project idea." };
-		}
-
-		logger.info("Parser completed", { category: parsed.category });
-
-		return parsed;
-	} catch (error) {
-		logger.error("Parser failed", {
-			error: error instanceof Error ? error.message : String(error),
-		});
-		throw error;
+	if (raw.validationError) {
+		return { validationError: raw.validationError };
 	}
+
+	if (!raw.problem?.trim() || !raw.solution?.trim()) {
+		return {
+			validationError:
+				"This does not appear to be a valid startup or project idea.",
+		};
+	}
+
+	return {
+		problem: raw.problem,
+		solution: raw.solution,
+		targetAudience: raw.targetAudience ?? "",
+		techDomain: raw.techDomain ?? "",
+		category: raw.category ?? "",
+		summary: raw.summary ?? "",
+	};
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { Card, CardContent, CardHeader } from "@lens/ui/components/card";
 import { NumberTicker } from "@lens/ui/components/number-ticker";
 import { useEffect, useState } from "react";
 
@@ -42,12 +43,6 @@ export function SynthesisCard({ synthesis }: { synthesis: SynthesisData }) {
 			: score >= 4
 				? "text-amber-600 dark:text-amber-400"
 				: "text-red-600 dark:text-red-400";
-	const scoreBorder =
-		score >= 7
-			? "border-green-200 dark:border-green-800"
-			: score >= 4
-				? "border-amber-200 dark:border-amber-800"
-				: "border-red-200 dark:border-red-800";
 	const scoreBg =
 		score >= 7
 			? "bg-green-50 dark:bg-green-950/30"
@@ -56,23 +51,22 @@ export function SynthesisCard({ synthesis }: { synthesis: SynthesisData }) {
 				: "bg-red-50 dark:bg-red-950/30";
 
 	return (
-		<div className="fade-in slide-in-from-bottom-4 mt-4 w-full max-w-2xl animate-in rounded-lg border duration-500">
-			<div className="border-b px-4 py-3">
-				<span className="font-mono text-[11px] text-muted-foreground uppercase tracking-widest">
-					Analysis result
+		<Card className="mt-4 w-full max-w-2xl">
+			<CardHeader className="pb-3">
+				<span className="font-mono text-muted-foreground text-xs uppercase tracking-widest">
+					Analysis Result
 				</span>
-			</div>
-
-			<div className="p-4">
+			</CardHeader>
+			<CardContent className="space-y-4">
 				<div
-					className={`mb-4 flex items-start gap-4 rounded-md border p-3 ${scoreBg} ${scoreBorder}`}
+					className={`flex items-start gap-4 rounded-lg border p-4 ${scoreBg}`}
 				>
 					<div className="shrink-0 text-center">
 						<NumberTicker
 							value={score}
 							className={`font-mono font-semibold text-4xl leading-none ${scoreColor}`}
 						/>
-						<span className="block font-mono text-muted-foreground text-xs">
+						<span className="font-mono text-muted-foreground text-xs">
 							/ 10
 						</span>
 					</div>
@@ -84,38 +78,36 @@ export function SynthesisCard({ synthesis }: { synthesis: SynthesisData }) {
 					</p>
 				</div>
 
-				<div className="space-y-4">
-					<div>
-						<span className="font-mono text-[11px] text-muted-foreground uppercase tracking-widest">
-							Summary
-						</span>
-						<p className="mt-1 min-h-[1.25rem] text-sm leading-relaxed">
-							{summary}
-							{summary.length < synthesis.summary.length && (
-								<span className="animate-pulse">▋</span>
-							)}
-						</p>
-					</div>
-
-					{synthesis.topRecommendations.length > 0 && (
-						<div className="fade-in animate-in duration-700">
-							<span className="font-mono text-[11px] text-muted-foreground uppercase tracking-widest">
-								Recommendations
-							</span>
-							<ol className="mt-2 space-y-2">
-								{synthesis.topRecommendations.map((rec, i) => (
-									<li key={i} className="flex gap-3 text-sm leading-relaxed">
-										<span className="mt-0.5 shrink-0 font-mono text-muted-foreground text-xs">
-											{String(i + 1).padStart(2, "0")}
-										</span>
-										{cap(rec)}
-									</li>
-								))}
-							</ol>
-						</div>
-					)}
+				<div>
+					<span className="font-mono text-muted-foreground text-xs uppercase tracking-widest">
+						Summary
+					</span>
+					<p className="mt-1 min-h-[1.25rem] text-sm leading-relaxed">
+						{summary}
+						{summary.length < synthesis.summary.length && (
+							<span className="animate-pulse">▋</span>
+						)}
+					</p>
 				</div>
-			</div>
-		</div>
+
+				{synthesis.topRecommendations.length > 0 && (
+					<div>
+						<span className="font-mono text-muted-foreground text-xs uppercase tracking-widest">
+							Recommendations
+						</span>
+						<ol className="mt-2 space-y-2">
+							{synthesis.topRecommendations.map((rec, i) => (
+								<li key={i} className="flex gap-3 text-sm">
+									<span className="mt-0.5 shrink-0 font-mono text-muted-foreground text-xs">
+										{String(i + 1).padStart(2, "0")}
+									</span>
+									{cap(rec)}
+								</li>
+							))}
+						</ol>
+					</div>
+				)}
+			</CardContent>
+		</Card>
 	);
 }

@@ -1,5 +1,5 @@
 import type { RunnableConfig } from "@langchain/core/runnables";
-import { createAgent } from "langchain";
+
 import {
 	type CritiqueResult,
 	type FeasibilityResult,
@@ -8,12 +8,11 @@ import {
 	type ResearchResult,
 	type SynthesisResult,
 	SynthesisResultSchema,
-} from "../../graph/schemas";
-import { createLogger } from "../../logger";
-import { getModel } from "../../utils";
+} from "@/graph/schemas";
+import { createModel } from "@/utils/model";
 import { SYNTHESIS_PROMPT } from "./prompt";
 
-interface SynthesisInput {
+export interface SynthesisInput {
 	parsedIdea: ParsedIdea;
 	research: ResearchResult;
 	critique: CritiqueResult;
@@ -25,40 +24,12 @@ export async function runSynthesis(
 	input: SynthesisInput,
 	config?: RunnableConfig,
 ): Promise<SynthesisResult> {
-	const logger = createLogger(config);
-
-	try {
-		logger.info("Starting synthesis");
-
-		const response = await getModel(async (llm) => {
-			const agent = createAgent({
-				model: llm,
-				tools: [],
-				systemPrompt: SYNTHESIS_PROMPT,
-			});
-
-			return agent.invoke(
-				{
-					messages: [{ role: "user", content: JSON.stringify(input, null, 2) }],
-				},
-				config,
-			);
-		});
-
-		const lastMessage = response.messages[response.messages.length - 1];
-		const content =
-			typeof lastMessage?.content === "string"
-				? lastMessage.content
-				: String(lastMessage?.content);
-
-		const result = SynthesisResultSchema.parse(JSON.parse(content));
-		logger.info("Synthesis completed", { score: result.overallScore });
-
-		return result;
-	} catch (error) {
-		logger.error("Synthesis failed", {
-			error: error instanceof Error ? error.message : String(error),
-		});
-		throw error;
-	}
+	const model = createModel(1024);
+	return model.withStructuredOutput(SynthesisResultSchema).invoke(
+		[
+			{ role: "system", content: SYNTHESIS_PROMPT },
+			{ role: "user", content: JSON.stringify(input, null, 2) },
+		],
+		config,
+	);
 }

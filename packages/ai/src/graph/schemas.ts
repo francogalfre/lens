@@ -10,19 +10,16 @@ export const ParsedIdeaSchema = z.object({
 });
 
 export const ResearchResultSchema = z.object({
-	competitors: z
-		.array(
-			z.object({
-				name: z.string(),
-				description: z.string(),
-				url: z.string().optional(),
-			}),
-		)
-		.optional()
-		.default([]),
+	competitors: z.array(
+		z.object({
+			name: z.string(),
+			description: z.string(),
+			url: z.string().optional(),
+		}),
+	),
 	marketContext: z.string(),
-	searchQueries: z.array(z.string()).optional().default([]),
-	opportunities: z.array(z.string()).optional().default([]),
+	searchQueries: z.array(z.string()),
+	opportunities: z.array(z.string()),
 });
 
 export const CritiqueResultSchema = z.object({
@@ -38,14 +35,14 @@ export const OpportunityResultSchema = z.object({
 });
 
 export const FeasibilityResultSchema = z.object({
-	complexity: z.enum(["low", "medium", "high"]),
+	complexity: z.string(),
 	techStack: z.array(z.string()),
 	mainChallenges: z.array(z.string()),
 	estimatedTimeline: z.string(),
 });
 
 export const SynthesisResultSchema = z.object({
-	overallScore: z.number().min(1).max(10),
+	overallScore: z.number().int().min(1).max(10),
 	verdict: z.string(),
 	topRecommendations: z.array(z.string()),
 	summary: z.string(),

@@ -1,97 +1,33 @@
-import type { RunnableConfig } from "@langchain/core/runnables";
-import { END, getWriter, START, StateGraph } from "@langchain/langgraph";
-import { runCritic } from "../agents/critic";
-import { runFeasibility } from "../agents/feasibility";
-import { runOpportunity } from "../agents/opportunity";
-import { runParser } from "../agents/parser";
-import { runResearcher } from "../agents/researcher";
-import { runSynthesis } from "../agents/synthesis";
+import { END, START, StateGraph } from "@langchain/langgraph";
+
+import { criticNode } from "../agents/critic/node";
+import { feasibilityNode } from "../agents/feasibility/node";
+import { opportunityNode } from "../agents/opportunity/node";
+import { parserNode } from "../agents/parser/node";
+import { researcherNode } from "../agents/researcher/node";
+import { synthesisNode } from "../agents/synthesis/node";
 import { AnalysisState } from "./state";
 
-type State = typeof AnalysisState.State;
+export type State = typeof AnalysisState.State;
 
-const parserNode = async (state: State, config: RunnableConfig) => {
-	getWriter()?.({ type: "nodeStart", agent: "parser" });
-	const result = await runParser(state.rawIdea, config);
-	if ("validationError" in result) {
-		return { validationError: result.validationError };
-	}
-	return {
-		parsedIdea: result,
-		completedAgents: ["parser"],
-	};
-};
-
-const researcherNode = async (state: State, config: RunnableConfig) => {
-	if (state.validationError) return {};
-	getWriter()?.({ type: "nodeStart", agent: "researcher" });
-	return {
-		research: await runResearcher(state.rawIdea, config),
-		completedAgents: ["researcher"],
-	};
-};
-
-const criticNode = async (state: State, config: RunnableConfig) => {
-	if (state.validationError) return {};
-	getWriter()?.({ type: "nodeStart", agent: "critic" });
-	return {
-		critique: await runCritic(state.rawIdea, config),
-		completedAgents: ["critic"],
-	};
-};
-
-const opportunityNode = async (state: State, config: RunnableConfig) => {
-	if (state.validationError) return {};
-	getWriter()?.({ type: "nodeStart", agent: "opportunity" });
-	return {
-		opportunities: await runOpportunity(state.rawIdea, config),
-		completedAgents: ["opportunity"],
-	};
-};
-
-const feasibilityNode = async (state: State, config: RunnableConfig) => {
-	if (state.validationError) return {};
-	getWriter()?.({ type: "nodeStart", agent: "feasibility_agent" });
-	return {
-		feasibility: await runFeasibility(state.rawIdea, config),
-		completedAgents: ["feasibility"],
-	};
-};
-
-const synthesisNode = async (state: State, config: RunnableConfig) => {
-	if (state.validationError) return {};
-	getWriter()?.({ type: "nodeStart", agent: "synthesis_agent" });
-	return {
-		synthesis: await runSynthesis(
-			{
-				parsedIdea: state.parsedIdea!,
-				research: state.research!,
-				critique: state.critique!,
-				opportunities: state.opportunities!,
-				feasibility: state.feasibility!,
-			},
-			config,
-		),
-		completedAgents: ["synthesis"],
-	};
-};
+const retryPolicy = { maxAttempts: 3, initialInterval: 1.0 };
 
 export const analysisGraph = new StateGraph(AnalysisState)
-	.addNode("parser", parserNode)
-	.addNode("researcher", researcherNode)
-	.addNode("critic", criticNode)
-	.addNode("opportunity", opportunityNode)
-	.addNode("feasibility_agent", feasibilityNode)
-	.addNode("synthesis_agent", synthesisNode)
+	.addNode("parser_agent", parserNode, { retryPolicy })
+	.addNode("researcher_agent", researcherNode, { retryPolicy })
+	.addNode("critic_agent", criticNode, { retryPolicy })
+	.addNode("opportunity_agent", opportunityNode, { retryPolicy })
+	.addNode("feasibility_agent", feasibilityNode, { retryPolicy })
+	.addNode("synthesis_agent", synthesisNode, { retryPolicy })
 
-	.addEdge(START, "parser")
-	.addEdge("parser", "researcher")
-	.addEdge("parser", "critic")
-	.addEdge("parser", "opportunity")
-	.addEdge("parser", "feasibility_agent")
-	.addEdge("researcher", "synthesis_agent")
-	.addEdge("critic", "synthesis_agent")
-	.addEdge("opportunity", "synthesis_agent")
+	.addEdge(START, "parser_agent")
+	.addEdge("parser_agent", "researcher_agent")
+	.addEdge("parser_agent", "critic_agent")
+	.addEdge("parser_agent", "opportunity_agent")
+	.addEdge("parser_agent", "feasibility_agent")
+	.addEdge("researcher_agent", "synthesis_agent")
+	.addEdge("critic_agent", "synthesis_agent")
+	.addEdge("opportunity_agent", "synthesis_agent")
 	.addEdge("feasibility_agent", "synthesis_agent")
 	.addEdge("synthesis_agent", END)
 	.compile();

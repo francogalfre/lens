@@ -1,72 +1,43 @@
 import { Serper } from "@langchain/community/tools/serper";
 import type { RunnableConfig } from "@langchain/core/runnables";
-import { createAgent } from "langchain";
-import { type ResearchResult, ResearchResultSchema } from "../../graph/schemas";
-import { createLogger } from "../../logger";
-import { getModel } from "../../utils";
+
+import { type ResearchResult, ResearchResultSchema } from "@/graph/schemas";
+import { createModel } from "@/utils/model";
 import { RESEARCHER_PROMPT } from "./prompt";
 
-let searchTool: Serper | null = null;
-
-function getSearchTool(): Serper {
-	if (!searchTool) {
-		searchTool = new Serper(process.env.SERPER_API_KEY);
-	}
-	return searchTool;
-}
+const searchTool = new Serper(process.env.SERPER_API_KEY);
 
 export async function runResearcher(
 	idea: string,
 	config?: RunnableConfig,
 ): Promise<ResearchResult> {
-	const logger = createLogger(config);
+	const queries = [
+		`${idea} competitors alternatives`,
+		`${idea} market size trends 2024`,
+		`${idea} startup solutions demand`,
+	];
 
-	try {
-		logger.info("Starting researcher");
+	const results = await Promise.allSettled(
+		queries.map((q) => searchTool.invoke(q)),
+	);
 
-		const response = await getModel(async (llm) => {
-			const agent = createAgent({
-				model: llm,
-				tools: [getSearchTool()],
-				systemPrompt: RESEARCHER_PROMPT,
-			});
+	const context = results
+		.map(
+			(r, i) =>
+				`Query: ${queries[i]}\n${r.status === "fulfilled" ? r.value : "No results"}`,
+		)
+		.join("\n\n---\n\n");
 
-			return agent.invoke(
+	return createModel(1200)
+		.withStructuredOutput(ResearchResultSchema)
+		.invoke(
+			[
+				{ role: "system", content: RESEARCHER_PROMPT },
 				{
-					messages: [{ role: "user", content: `Research this idea: ${idea}` }],
+					role: "user",
+					content: `Idea: ${idea}\n\nSearch results:\n\n${context}`,
 				},
-				config,
-			);
-		});
-
-		const lastMessage = response.messages[response.messages.length - 1];
-		const content =
-			typeof lastMessage?.content === "string"
-				? lastMessage.content
-				: String(lastMessage?.content);
-
-		let result: ResearchResult;
-		try {
-			const parsed = JSON.parse(content);
-			result = ResearchResultSchema.parse(parsed);
-		} catch (e) {
-			logger.warn("Failed to parse research JSON, using fallback");
-			result = ResearchResultSchema.parse({
-				competitors: [],
-				marketContext: content,
-				searchQueries: [],
-				opportunities: [],
-			});
-		}
-
-		logger.info("Researcher completed", {
-			competitorsCount: result.competitors?.length || 0,
-		});
-		return result;
-	} catch (error) {
-		logger.error("Researcher failed", {
-			error: error instanceof Error ? error.message : String(error),
-		});
-		throw error;
-	}
+			],
+			config,
+		);
 }

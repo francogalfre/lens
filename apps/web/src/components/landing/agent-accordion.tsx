@@ -17,10 +17,16 @@ import { useEffect, useState } from "react";
 const cap = (s?: string): string | undefined =>
 	s ? s.charAt(0).toUpperCase() + s.slice(1) : undefined;
 
+export interface AgentMessage {
+	type: "status" | "complete" | "error";
+	text: string;
+}
+
 export interface AgentState {
 	name: string;
 	status: "pending" | "running" | "complete";
 	data: unknown;
+	messages?: AgentMessage[];
 }
 
 const AGENT_META: Record<
@@ -32,102 +38,43 @@ const AGENT_META: Record<
 		Icon: React.ComponentType<{ className?: string }>;
 	}
 > = {
-	parser: {
+	parser_agent: {
 		label: "Idea Parser",
 		doneLabel: "Idea parsed",
-		phrases: [
-			"Parsing your idea...",
-			"Breaking it down...",
-			"Identifying the core problem...",
-			"Mapping the concept...",
-		],
+		phrases: ["Parsing your idea...", "Breaking it down..."],
 		Icon: Search,
 	},
-	researcher: {
+	researcher_agent: {
 		label: "Market Researcher",
 		doneLabel: "Market researched",
-		phrases: [
-			"Searching the web...",
-			"Looking for competitors...",
-			"Gathering market data...",
-			"Scanning the landscape...",
-		],
+		phrases: ["Searching the web...", "Gathering market data..."],
 		Icon: Globe,
 	},
-	critic: {
+	critic_agent: {
 		label: "Risk Analyst",
 		doneLabel: "Risks identified",
-		phrases: [
-			"Being skeptical...",
-			"Finding weaknesses...",
-			"Stress-testing assumptions...",
-			"Playing devil's advocate...",
-		],
+		phrases: ["Analyzing weaknesses...", "Evaluating risks..."],
 		Icon: ShieldAlert,
 	},
-	opportunity: {
+	opportunity_agent: {
 		label: "Opportunity Scout",
 		doneLabel: "Opportunities found",
-		phrases: [
-			"Spotting opportunities...",
-			"Finding your edge...",
-			"Exploring market gaps...",
-			"Looking for strengths...",
-		],
+		phrases: ["Finding opportunities...", "Exploring gaps..."],
 		Icon: Lightbulb,
 	},
 	feasibility_agent: {
 		label: "Feasibility Checker",
 		doneLabel: "Feasibility assessed",
-		phrases: [
-			"Evaluating feasibility...",
-			"Estimating complexity...",
-			"Checking the tech stack...",
-			"Assessing timelines...",
-		],
+		phrases: ["Evaluating feasibility...", "Assessing complexity..."],
 		Icon: Wrench,
 	},
 	synthesis_agent: {
 		label: "Synthesis Agent",
 		doneLabel: "Analysis complete",
-		phrases: [
-			"Synthesizing findings...",
-			"Cooking the insights...",
-			"Writing the verdict...",
-			"Putting it all together...",
-		],
+		phrases: ["Synthesizing findings...", "Writing verdict..."],
 		Icon: Sparkles,
 	},
 };
-
-function ThinkingPanel({ phrase }: { phrase: string }) {
-	return (
-		<div className="space-y-3 py-1">
-			<div className="flex items-center gap-2">
-				<div className="flex gap-1">
-					<span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/40 [animation-delay:-0.3s]" />
-					<span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/40 [animation-delay:-0.15s]" />
-					<span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/40" />
-				</div>
-				<span
-					key={phrase}
-					className="fade-in animate-in text-muted-foreground text-xs duration-500"
-				>
-					{phrase}
-				</span>
-			</div>
-			<div className="space-y-2.5">
-				{[88, 72, 95, 60].map((w, i) => (
-					<div
-						key={i}
-						className="h-2 animate-pulse rounded-full bg-muted"
-						style={{ width: `${w}%`, animationDelay: `${i * 120}ms` }}
-					/>
-				))}
-			</div>
-		</div>
-	);
-}
 
 function Label({ children }: { children: React.ReactNode }) {
 	return (
@@ -167,11 +114,13 @@ function AgentContent({ agent, data }: { agent: string; data: unknown }) {
 	const d = data as Record<string, Record<string, unknown>>;
 	const payload = d[agent];
 
-	if (agent === "parser" && payload) {
+	if (agent === "parser_agent" && payload) {
 		if (typeof payload.validationError === "string") {
 			return (
 				<BlurFade duration={0.35}>
-					<p className="text-muted-foreground text-sm">{payload.validationError}</p>
+					<p className="text-muted-foreground text-sm">
+						{payload.validationError}
+					</p>
 				</BlurFade>
 			);
 		}
@@ -192,7 +141,7 @@ function AgentContent({ agent, data }: { agent: string; data: unknown }) {
 		);
 	}
 
-	if (agent === "researcher" && payload) {
+	if (agent === "researcher_agent" && payload) {
 		const r = payload.research as
 			| {
 					competitors?: { name: string; description: string; url?: string }[];
@@ -208,8 +157,20 @@ function AgentContent({ agent, data }: { agent: string; data: unknown }) {
 							<Label>Competitors</Label>
 							<div className="mt-2 space-y-2">
 								{r.competitors.map((c) => (
-									<div key={c.name} className="flex flex-col">
-										<span className="font-medium text-sm">{cap(c.name)}</span>
+									<div key={c.name} className="flex flex-col gap-0.5">
+										<div className="flex items-center gap-2">
+											<span className="font-medium text-sm">{cap(c.name)}</span>
+											{c.url && (
+												<a
+													href={c.url}
+													target="_blank"
+													rel="noopener noreferrer"
+													className="text-muted-foreground text-xs underline underline-offset-2 transition-colors hover:text-foreground"
+												>
+													Visit ↗
+												</a>
+											)}
+										</div>
 										<span className="text-muted-foreground text-xs leading-relaxed">
 											{cap(c.description)}
 										</span>
@@ -232,7 +193,7 @@ function AgentContent({ agent, data }: { agent: string; data: unknown }) {
 		);
 	}
 
-	if (agent === "critic" && payload) {
+	if (agent === "critic_agent" && payload) {
 		const c = payload.critique as
 			| {
 					weaknesses?: string[];
@@ -259,7 +220,7 @@ function AgentContent({ agent, data }: { agent: string; data: unknown }) {
 		);
 	}
 
-	if (agent === "opportunity" && payload) {
+	if (agent === "opportunity_agent" && payload) {
 		const o = payload.opportunities as
 			| {
 					strengths?: string[];
@@ -325,6 +286,39 @@ function AgentContent({ agent, data }: { agent: string; data: unknown }) {
 		);
 	}
 
+	if (agent === "synthesis_agent" && payload) {
+		const s = payload.synthesis as
+			| {
+					overallScore?: number;
+					verdict?: string;
+					topRecommendations?: string[];
+					summary?: string;
+			  }
+			| undefined;
+		if (!s) return null;
+		return (
+			<BlurFade duration={0.35}>
+				<div className="space-y-4">
+					{s.overallScore !== undefined && (
+						<div className="flex items-baseline gap-2">
+							<span className="font-mono font-semibold text-3xl leading-none">
+								{s.overallScore}
+							</span>
+							<span className="font-mono text-muted-foreground text-xs">
+								/ 10
+							</span>
+						</div>
+					)}
+					{s.verdict && <Field label="Verdict" value={s.verdict} />}
+					{s.summary && <Field label="Summary" value={s.summary} />}
+					{s.topRecommendations && s.topRecommendations.length > 0 && (
+						<BulletList label="Recommendations" items={s.topRecommendations} />
+					)}
+				</div>
+			</BlurFade>
+		);
+	}
+
 	return null;
 }
 
@@ -337,10 +331,6 @@ function AgentItem({ agent }: { agent: AgentState }) {
 	const isRunning = agent.status === "running";
 	const isComplete = agent.status === "complete";
 
-	const hasValidationError =
-		agent.name === "parser" &&
-		typeof (agent.data as Record<string, Record<string, unknown>> | null)?.[agent.name]?.validationError === "string";
-
 	useEffect(() => {
 		if (!isRunning || !meta) return;
 		const id = setInterval(
@@ -350,87 +340,101 @@ function AgentItem({ agent }: { agent: AgentState }) {
 		return () => clearInterval(id);
 	}, [isRunning, meta]);
 
-	useEffect(() => {
-		if (isRunning) setExpanded(true);
-	}, [isRunning]);
-
 	if (!meta) return null;
 
-	const { Icon, label, doneLabel, phrases } = meta;
+	const { label, phrases } = meta;
 
 	return (
-		<div className="border-b last:border-b-0">
+		<div className="group border-border/60 border-b last:border-b-0">
 			<button
 				type="button"
-				className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-muted/30 disabled:cursor-default disabled:opacity-40"
-				onClick={() => !isPending && setExpanded((p) => !p)}
+				onClick={() => !isPending && setExpanded(!expanded)}
+				className={`flex w-full items-center gap-4 px-4 py-4 text-left transition-colors ${
+					isPending ? "opacity-50" : "hover:bg-muted/30"
+				}`}
 				disabled={isPending}
 			>
-				{/* Status dot */}
-				<div className="flex h-4 w-4 shrink-0 items-center justify-center">
-					{isPending && <Circle className="h-3 w-3 text-muted-foreground/30" />}
+				<div className="shrink-0">
+					{isPending && <Circle className="h-5 w-5 text-muted-foreground/30" />}
 					{isRunning && (
-						<span className="relative flex h-2.5 w-2.5">
-							<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75" />
-							<span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-blue-500" />
+						<span className="relative flex h-5 w-5">
+							<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500/40 opacity-75" />
+							<span className="relative inline-flex h-5 w-5 rounded-full bg-red-500" />
 						</span>
 					)}
-					{isComplete && (
-						<CheckCircle2 className="h-3.5 w-3.5 text-green-600 dark:text-green-500" />
-					)}
+					{isComplete && <CheckCircle2 className="h-5 w-5 text-green-500" />}
 				</div>
 
-				{/* Agent icon */}
-				<Icon
-					className={`h-4 w-4 shrink-0 transition-colors ${isPending ? "text-muted-foreground/30" : "text-foreground"}`}
-				/>
-
-				{/* Label */}
 				<div className="min-w-0 flex-1">
-					{isPending && (
-						<span className="text-muted-foreground/50 text-sm">{label}</span>
-					)}
-					{isRunning && (
-						<span
-							key={phraseIndex}
-							className="fade-in block animate-in font-medium text-sm duration-500"
-						>
-							{phrases[phraseIndex]}
-						</span>
-					)}
-					{isComplete && (
-						<span className="font-medium text-sm">
-							{hasValidationError ? "Input inválido" : doneLabel}
-						</span>
-					)}
+					<div className="flex items-center gap-2">
+						<span className="font-medium text-foreground">{label}</span>
+						{isComplete && (
+							<span className="rounded-full bg-green-500/10 px-2 py-0.5 font-medium text-green-600 text-xs">
+								Done
+							</span>
+						)}
+						{isRunning && (
+							<span className="rounded-full bg-red-500/10 px-2 py-0.5 font-medium text-red-600 text-xs">
+								Running
+							</span>
+						)}
+					</div>
 				</div>
 
-				{/* Chevron */}
 				{!isPending && (
 					<ChevronDown
-						className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}
+						className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 ${
+							expanded ? "rotate-180" : ""
+						}`}
 					/>
 				)}
 			</button>
 
-			{expanded && !isPending && (
-				<div className="border-t bg-muted/20 px-11 py-4">
-					{isRunning && <ThinkingPanel phrase={phrases[phraseIndex]} />}
-					{isComplete && <AgentContent agent={agent.name} data={agent.data} />}
+			{expanded && (
+				<div className="px-4 pb-4 pl-[4.5rem]">
+					<div className="border-t pt-4">
+						{isRunning && (
+							<div className="flex items-start gap-3">
+								<span className="mt-1 flex h-2 w-2 shrink-0 items-center justify-center">
+									<span className="relative flex h-2 w-2">
+										<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
+										<span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
+									</span>
+								</span>
+								<p className="animate-pulse text-muted-foreground text-sm">
+									{phrases[phraseIndex]}
+								</p>
+							</div>
+						)}
+						{isComplete && (
+							<AgentContent agent={agent.name} data={agent.data} />
+						)}
+					</div>
 				</div>
 			)}
 		</div>
 	);
 }
 
-export function AgentTimeline({ agents }: { agents: AgentState[] }) {
+export function AgentAccordion({ agents }: { agents: AgentState[] }) {
 	if (agents.length === 0) return null;
 
 	return (
-		<div className="fade-in mt-6 w-full max-w-2xl animate-in rounded-lg border duration-300">
-			{agents.map((agent) => (
-				<AgentItem key={agent.name} agent={agent} />
-			))}
+		<div className="rounded-xl border bg-card">
+			<div className="border-b px-4 py-3">
+				<div className="flex items-center justify-between">
+					<h2 className="font-semibold text-lg">Analysis Agents</h2>
+					<span className="font-mono text-muted-foreground text-sm">
+						{agents.filter((a) => a.status === "complete").length}/
+						{agents.length}
+					</span>
+				</div>
+			</div>
+			<div>
+				{agents.map((agent) => (
+					<AgentItem key={agent.name} agent={agent} />
+				))}
+			</div>
 		</div>
 	);
 }

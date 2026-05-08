@@ -7,9 +7,8 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { z } from "zod";
-
-import { FormField } from "@/components/auth/form-field";
 import { trpc } from "@/utils/trpc";
+import { FormField } from "../components/form-field";
 
 const schema = z.object({
 	name: z.string().min(2, "Name must be at least 2 characters"),
