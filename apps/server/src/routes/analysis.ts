@@ -11,7 +11,7 @@ async function emit(
 	await writer.write(encoder.encode(`${JSON.stringify(data)}\n`));
 }
 
-export async function streamAnalysis(c: HonoContext): Promise<Response> {
+export async function streamAnalysis(c: HonoContext, userId: string): Promise<Response> {
 	const body = await c.req.json<{ rawIdea?: string }>();
 
 	if (!body.rawIdea?.trim()) {
@@ -19,7 +19,7 @@ export async function streamAnalysis(c: HonoContext): Promise<Response> {
 	}
 
 	const { rawIdea } = body;
-	const sessionId = `session-${Date.now()}`;
+	const sessionId = userId;
 	const logger = createLogger(toRunConfig(sessionId));
 	const encoder = new TextEncoder();
 	const { readable, writable } = new TransformStream<Uint8Array, Uint8Array>();

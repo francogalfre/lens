@@ -168,6 +168,13 @@ function AgentContent({ agent, data }: { agent: string; data: unknown }) {
 	const payload = d[agent];
 
 	if (agent === "parser" && payload) {
+		if (typeof payload.validationError === "string") {
+			return (
+				<BlurFade duration={0.35}>
+					<p className="text-muted-foreground text-sm">{payload.validationError}</p>
+				</BlurFade>
+			);
+		}
 		const idea = payload.parsedIdea as Record<string, string> | undefined;
 		if (!idea) return null;
 		return (
@@ -330,6 +337,10 @@ function AgentItem({ agent }: { agent: AgentState }) {
 	const isRunning = agent.status === "running";
 	const isComplete = agent.status === "complete";
 
+	const hasValidationError =
+		agent.name === "parser" &&
+		typeof (agent.data as Record<string, Record<string, unknown>> | null)?.[agent.name]?.validationError === "string";
+
 	useEffect(() => {
 		if (!isRunning || !meta) return;
 		const id = setInterval(
@@ -388,7 +399,9 @@ function AgentItem({ agent }: { agent: AgentState }) {
 						</span>
 					)}
 					{isComplete && (
-						<span className="font-medium text-sm">{doneLabel}</span>
+						<span className="font-medium text-sm">
+							{hasValidationError ? "Input inválido" : doneLabel}
+						</span>
 					)}
 				</div>
 

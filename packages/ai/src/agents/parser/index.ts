@@ -5,10 +5,12 @@ import { createLogger } from "../../logger";
 import { getModel } from "../../utils";
 import { PARSER_PROMPT } from "./prompt";
 
+export type ParserResult = ParsedIdea | { validationError: string };
+
 export async function runParser(
 	idea: string,
 	config?: RunnableConfig,
-): Promise<ParsedIdea> {
+): Promise<ParserResult> {
 	const logger = createLogger(config);
 
 	try {
@@ -33,7 +35,19 @@ export async function runParser(
 				? lastMessage.content
 				: String(lastMessage?.content);
 
-		const parsed = ParsedIdeaSchema.parse(JSON.parse(content));
+		const data = JSON.parse(content);
+
+		if ("validationError" in data) {
+			logger.info("Parser rejected input", { reason: data.validationError });
+			return { validationError: data.validationError };
+		}
+
+		const parsed = ParsedIdeaSchema.parse(data);
+
+		if (!parsed.problem.trim() || !parsed.solution.trim()) {
+			return { validationError: "This does not appear to be a valid startup or project idea." };
+		}
+
 		logger.info("Parser completed", { category: parsed.category });
 
 		return parsed;

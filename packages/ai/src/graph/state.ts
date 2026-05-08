@@ -13,6 +13,8 @@ import {
 export const AnalysisState = new StateSchema({
 	rawIdea: z.string(),
 
+	validationError: z.string().optional(),
+
 	parsedIdea: ParsedIdeaSchema.optional(),
 	research: ResearchResultSchema.optional(),
 	critique: CritiqueResultSchema.optional(),

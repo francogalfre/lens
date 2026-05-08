@@ -12,13 +12,18 @@ type State = typeof AnalysisState.State;
 
 const parserNode = async (state: State, config: RunnableConfig) => {
 	getWriter()?.({ type: "nodeStart", agent: "parser" });
+	const result = await runParser(state.rawIdea, config);
+	if ("validationError" in result) {
+		return { validationError: result.validationError };
+	}
 	return {
-		parsedIdea: await runParser(state.rawIdea, config),
+		parsedIdea: result,
 		completedAgents: ["parser"],
 	};
 };
 
 const researcherNode = async (state: State, config: RunnableConfig) => {
+	if (state.validationError) return {};
 	getWriter()?.({ type: "nodeStart", agent: "researcher" });
 	return {
 		research: await runResearcher(state.rawIdea, config),
@@ -27,6 +32,7 @@ const researcherNode = async (state: State, config: RunnableConfig) => {
 };
 
 const criticNode = async (state: State, config: RunnableConfig) => {
+	if (state.validationError) return {};
 	getWriter()?.({ type: "nodeStart", agent: "critic" });
 	return {
 		critique: await runCritic(state.rawIdea, config),
@@ -35,6 +41,7 @@ const criticNode = async (state: State, config: RunnableConfig) => {
 };
 
 const opportunityNode = async (state: State, config: RunnableConfig) => {
+	if (state.validationError) return {};
 	getWriter()?.({ type: "nodeStart", agent: "opportunity" });
 	return {
 		opportunities: await runOpportunity(state.rawIdea, config),
@@ -43,6 +50,7 @@ const opportunityNode = async (state: State, config: RunnableConfig) => {
 };
 
 const feasibilityNode = async (state: State, config: RunnableConfig) => {
+	if (state.validationError) return {};
 	getWriter()?.({ type: "nodeStart", agent: "feasibility_agent" });
 	return {
 		feasibility: await runFeasibility(state.rawIdea, config),
@@ -51,6 +59,7 @@ const feasibilityNode = async (state: State, config: RunnableConfig) => {
 };
 
 const synthesisNode = async (state: State, config: RunnableConfig) => {
+	if (state.validationError) return {};
 	getWriter()?.({ type: "nodeStart", agent: "synthesis_agent" });
 	return {
 		synthesis: await runSynthesis(

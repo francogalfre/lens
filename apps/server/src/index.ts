@@ -29,7 +29,7 @@ app.post("/api/analysis/stream", async (c) => {
 	if (!session) {
 		return c.json({ error: "Unauthorized" }, 401);
 	}
-	return streamAnalysis(c);
+	return streamAnalysis(c, session.user.id);
 });
 
 app.use(
