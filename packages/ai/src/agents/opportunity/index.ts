@@ -1,11 +1,9 @@
 import type { RunnableConfig } from "@langchain/core/runnables";
-
-import {
-	type OpportunityResult,
-	OpportunityResultSchema,
-} from "@/graph/schemas";
+import { createAgent } from "langchain";
+import { OPPORTUNITY_PROMPT } from "@/agents/opportunity/prompt";
+import { type OpportunityResult, OpportunityResultSchema } from "@/types";
+import { createLoggingMiddleware } from "@/utils/middleware";
 import { createModel } from "@/utils/model";
-import { OPPORTUNITY_PROMPT } from "./prompt";
 
 export async function runOpportunity(
 	idea: string,
@@ -13,11 +11,21 @@ export async function runOpportunity(
 ): Promise<OpportunityResult> {
 	const model = createModel(1200);
 
-	return model.withStructuredOutput(OpportunityResultSchema).invoke(
-		[
-			{ role: "system", content: OPPORTUNITY_PROMPT },
-			{ role: "user", content: idea },
-		],
+	const opportunityAgent = createAgent({
+		name: "Opportunity Agent",
+		model,
+		systemPrompt: OPPORTUNITY_PROMPT,
+		responseFormat: OpportunityResultSchema,
+		tools: [],
+		middleware: [createLoggingMiddleware("Opportunity Agent")],
+	});
+
+	const result = await opportunityAgent.invoke(
+		{
+			messages: [{ role: "user", content: idea }],
+		},
 		config,
 	);
+
+	return result.structuredResponse;
 }

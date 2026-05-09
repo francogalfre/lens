@@ -8,7 +8,7 @@ import {
 	ParsedIdeaSchema,
 	ResearchResultSchema,
 	SynthesisResultSchema,
-} from "./schemas";
+} from "@/graph/schemas";
 
 export const AnalysisState = new StateSchema({
 	rawIdea: z.string(),

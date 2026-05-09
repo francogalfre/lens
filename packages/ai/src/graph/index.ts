@@ -1,12 +1,12 @@
 import { END, START, StateGraph } from "@langchain/langgraph";
 
-import { criticNode } from "../agents/critic/node";
-import { feasibilityNode } from "../agents/feasibility/node";
-import { opportunityNode } from "../agents/opportunity/node";
-import { parserNode } from "../agents/parser/node";
-import { researcherNode } from "../agents/researcher/node";
-import { synthesisNode } from "../agents/synthesis/node";
-import { AnalysisState } from "./state";
+import { criticNode } from "@/agents/critic/node";
+import { feasibilityNode } from "@/agents/feasibility/node";
+import { opportunityNode } from "@/agents/opportunity/node";
+import { parserNode } from "@/agents/parser/node";
+import { researcherNode } from "@/agents/researcher/node";
+import { synthesisNode } from "@/agents/synthesis/node";
+import { AnalysisState } from "@/graph/state";
 
 export type State = typeof AnalysisState.State;
 

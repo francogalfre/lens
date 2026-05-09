@@ -1,15 +1,20 @@
 import type { RunnableConfig } from "@langchain/core/runnables";
 import { getWriter } from "@langchain/langgraph";
 
+import { runFeasibility } from "@/agents/feasibility/index";
 import type { State } from "@/graph";
-import { runFeasibility } from "./index";
+import { buildIdeaContext } from "@/utils/format";
 
 export const feasibilityNode = async (state: State, config: RunnableConfig) => {
 	if (state.validationError) return {};
+
 	getWriter()?.({ type: "nodeStart", agent: "feasibility_agent" });
 
 	return {
-		feasibility: await runFeasibility(state.rawIdea, config),
+		feasibility: await runFeasibility(
+			buildIdeaContext(state.rawIdea, state.parsedIdea),
+			config,
+		),
 		completedAgents: ["feasibility"],
 	};
 };

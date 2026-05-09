@@ -1,42 +1,33 @@
 import type { RunnableConfig } from "@langchain/core/runnables";
-import { z } from "zod";
-
+import { createAgent } from "langchain";
+import { PARSER_PROMPT } from "@/agents/parser/prompt";
+import { ParserOutputSchema, type ParserResult } from "@/types";
+import { createLoggingMiddleware } from "@/utils/middleware";
 import { createModel } from "@/utils/model";
-import { PARSER_PROMPT } from "./prompt";
-
-const ParserOutputSchema = z.object({
-	validationError: z.string().optional(),
-	problem: z.string().optional(),
-	solution: z.string().optional(),
-	targetAudience: z.string().optional(),
-	techDomain: z.string().optional(),
-	category: z.string().optional(),
-	summary: z.string().optional(),
-});
-
-export type ParserResult =
-	| { validationError: string }
-	| {
-			problem: string;
-			solution: string;
-			targetAudience: string;
-			techDomain: string;
-			category: string;
-			summary: string;
-	  };
 
 export async function runParser(
 	idea: string,
 	config?: RunnableConfig,
 ): Promise<ParserResult> {
 	const model = createModel(512);
-	const raw = await model.withStructuredOutput(ParserOutputSchema).invoke(
-		[
-			{ role: "system", content: PARSER_PROMPT },
-			{ role: "user", content: idea },
-		],
+
+	const parserAgent = createAgent({
+		name: "Parser Agent",
+		model,
+		systemPrompt: PARSER_PROMPT,
+		responseFormat: ParserOutputSchema,
+		tools: [],
+		middleware: [createLoggingMiddleware("Parser Agent")],
+	});
+
+	const result = await parserAgent.invoke(
+		{
+			messages: [{ role: "user", content: idea }],
+		},
 		config,
 	);
+
+	const raw = result.structuredResponse;
 
 	if (raw.validationError) {
 		return { validationError: raw.validationError };

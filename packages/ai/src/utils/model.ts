@@ -1,6 +1,6 @@
 import { ChatOpenRouter } from "@langchain/openrouter";
 
-import { getApiKey } from "./api-key";
+import { getApiKey } from "@/utils/api-key";
 
 const MODEL_NAME = process.env.OPENROUTER_MODEL ?? "openai/gpt-oss-120b:free";
 

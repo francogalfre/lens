@@ -58,7 +58,8 @@ export function IdeaInput({
 					disabled={isRunning || isPendingAuth}
 					className="resize-none border-0 bg-transparent p-4 text-base shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
 					onKeyDown={(e) => {
-						if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+						if (e.key === "Enter" && !e.shiftKey) {
+							e.preventDefault();
 							handleSubmit();
 						}
 					}}
@@ -71,7 +72,7 @@ export function IdeaInput({
 						id="input-hint"
 						className="font-mono text-muted-foreground text-xs"
 					>
-						{isRunning ? "Analysis in progress..." : "⌘ + Enter to submit"}
+						{isRunning ? "Analysis in progress…" : "Shift + Enter for new line"}
 					</span>
 					<Button
 						onClick={handleSubmit}

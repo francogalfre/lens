@@ -2,9 +2,8 @@
 
 import { BlurFade } from "@lens/ui/components/blur-fade";
 import {
-	CheckCircle2,
-	ChevronDown,
-	Circle,
+	Check,
+	ChevronRight,
 	Globe,
 	Lightbulb,
 	Search,
@@ -33,52 +32,69 @@ const AGENT_META: Record<
 	string,
 	{
 		label: string;
-		doneLabel: string;
-		phrases: string[];
 		Icon: React.ComponentType<{ className?: string }>;
+		steps: string[];
 	}
 > = {
 	parser_agent: {
-		label: "Idea Parser",
-		doneLabel: "Idea parsed",
-		phrases: ["Parsing your idea...", "Breaking it down..."],
+		label: "Idea parser",
 		Icon: Search,
+		steps: [
+			"Extracting core problem…",
+			"Identifying target audience…",
+			"Categorizing domain…",
+		],
 	},
 	researcher_agent: {
-		label: "Market Researcher",
-		doneLabel: "Market researched",
-		phrases: ["Searching the web...", "Gathering market data..."],
+		label: "Market researcher",
 		Icon: Globe,
+		steps: [
+			"Querying market data…",
+			"Scanning competitors…",
+			"Analyzing trends…",
+		],
 	},
 	critic_agent: {
-		label: "Risk Analyst",
-		doneLabel: "Risks identified",
-		phrases: ["Analyzing weaknesses...", "Evaluating risks..."],
+		label: "Risk analyst",
 		Icon: ShieldAlert,
+		steps: [
+			"Testing assumptions…",
+			"Mapping risk vectors…",
+			"Identifying weak points…",
+		],
 	},
 	opportunity_agent: {
-		label: "Opportunity Scout",
-		doneLabel: "Opportunities found",
-		phrases: ["Finding opportunities...", "Exploring gaps..."],
+		label: "Opportunity scout",
 		Icon: Lightbulb,
+		steps: [
+			"Scanning market gaps…",
+			"Finding differentiators…",
+			"Mapping growth vectors…",
+		],
 	},
 	feasibility_agent: {
-		label: "Feasibility Checker",
-		doneLabel: "Feasibility assessed",
-		phrases: ["Evaluating feasibility...", "Assessing complexity..."],
+		label: "Feasibility checker",
 		Icon: Wrench,
+		steps: [
+			"Evaluating complexity…",
+			"Assessing tech stack…",
+			"Estimating timeline…",
+		],
 	},
 	synthesis_agent: {
-		label: "Synthesis Agent",
-		doneLabel: "Analysis complete",
-		phrases: ["Synthesizing findings...", "Writing verdict..."],
+		label: "Synthesis",
 		Icon: Sparkles,
+		steps: [
+			"Weighing all signals…",
+			"Forming verdict…",
+			"Writing recommendations…",
+		],
 	},
 };
 
 function Label({ children }: { children: React.ReactNode }) {
 	return (
-		<span className="font-mono text-[11px] text-muted-foreground uppercase tracking-widest">
+		<span className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">
 			{children}
 		</span>
 	);
@@ -87,21 +103,24 @@ function Label({ children }: { children: React.ReactNode }) {
 function Field({ label, value }: { label: string; value?: string }) {
 	if (!value) return null;
 	return (
-		<div>
+		<div className="space-y-0.5">
 			<Label>{label}</Label>
-			<p className="mt-0.5 text-sm leading-relaxed">{cap(value)}</p>
+			<p className="text-foreground/80 text-sm leading-relaxed">{cap(value)}</p>
 		</div>
 	);
 }
 
 function BulletList({ label, items }: { label: string; items: string[] }) {
 	return (
-		<div>
+		<div className="space-y-1.5">
 			<Label>{label}</Label>
-			<ul className="mt-1.5 space-y-1">
+			<ul className="space-y-1">
 				{items.map((item, i) => (
-					<li key={i} className="flex gap-2 text-sm leading-relaxed">
-						<span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-muted-foreground" />
+					<li
+						key={i}
+						className="flex gap-2.5 text-foreground/80 text-sm leading-relaxed"
+					>
+						<span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-muted-foreground/50" />
 						{cap(item)}
 					</li>
 				))}
@@ -117,7 +136,7 @@ function AgentContent({ agent, data }: { agent: string; data: unknown }) {
 	if (agent === "parser_agent" && payload) {
 		if (typeof payload.validationError === "string") {
 			return (
-				<BlurFade duration={0.35}>
+				<BlurFade duration={0.3}>
 					<p className="text-muted-foreground text-sm">
 						{payload.validationError}
 					</p>
@@ -127,12 +146,12 @@ function AgentContent({ agent, data }: { agent: string; data: unknown }) {
 		const idea = payload.parsedIdea as Record<string, string> | undefined;
 		if (!idea) return null;
 		return (
-			<BlurFade duration={0.35}>
+			<BlurFade duration={0.3}>
 				<div className="space-y-3">
 					<Field label="Problem" value={idea.problem} />
 					<Field label="Solution" value={idea.solution} />
 					<Field label="Target audience" value={idea.targetAudience} />
-					<div className="flex gap-6">
+					<div className="flex gap-8">
 						<Field label="Domain" value={idea.techDomain} />
 						<Field label="Category" value={idea.category} />
 					</div>
@@ -150,14 +169,14 @@ function AgentContent({ agent, data }: { agent: string; data: unknown }) {
 			| undefined;
 		if (!r) return null;
 		return (
-			<BlurFade duration={0.35}>
+			<BlurFade duration={0.3}>
 				<div className="space-y-4">
 					{r.competitors && r.competitors.length > 0 && (
-						<div>
+						<div className="space-y-1.5">
 							<Label>Competitors</Label>
-							<div className="mt-2 space-y-2">
+							<div className="space-y-3">
 								{r.competitors.map((c) => (
-									<div key={c.name} className="flex flex-col gap-0.5">
+									<div key={c.name} className="space-y-0.5">
 										<div className="flex items-center gap-2">
 											<span className="font-medium text-sm">{cap(c.name)}</span>
 											{c.url && (
@@ -167,7 +186,7 @@ function AgentContent({ agent, data }: { agent: string; data: unknown }) {
 													rel="noopener noreferrer"
 													className="text-muted-foreground text-xs underline underline-offset-2 transition-colors hover:text-foreground"
 												>
-													Visit ↗
+													↗
 												</a>
 											)}
 										</div>
@@ -184,7 +203,7 @@ function AgentContent({ agent, data }: { agent: string; data: unknown }) {
 							label="Market context"
 							value={
 								r.marketContext.slice(0, 300) +
-								(r.marketContext.length > 300 ? "..." : "")
+								(r.marketContext.length > 300 ? "…" : "")
 							}
 						/>
 					)}
@@ -203,7 +222,7 @@ function AgentContent({ agent, data }: { agent: string; data: unknown }) {
 			| undefined;
 		if (!c) return null;
 		return (
-			<BlurFade duration={0.35}>
+			<BlurFade duration={0.3}>
 				<div className="space-y-4">
 					{c.weaknesses && (
 						<BulletList label="Weaknesses" items={c.weaknesses} />
@@ -230,7 +249,7 @@ function AgentContent({ agent, data }: { agent: string; data: unknown }) {
 			| undefined;
 		if (!o) return null;
 		return (
-			<BlurFade duration={0.35}>
+			<BlurFade duration={0.3}>
 				<div className="space-y-4">
 					{o.strengths && <BulletList label="Strengths" items={o.strengths} />}
 					{o.opportunities && (
@@ -255,7 +274,7 @@ function AgentContent({ agent, data }: { agent: string; data: unknown }) {
 			| undefined;
 		if (!f) return null;
 		return (
-			<BlurFade duration={0.35}>
+			<BlurFade duration={0.3}>
 				<div className="space-y-4">
 					<div className="flex gap-8">
 						{f.complexity && <Field label="Complexity" value={f.complexity} />}
@@ -264,13 +283,13 @@ function AgentContent({ agent, data }: { agent: string; data: unknown }) {
 						)}
 					</div>
 					{f.techStack && f.techStack.length > 0 && (
-						<div>
+						<div className="space-y-1.5">
 							<Label>Tech stack</Label>
-							<div className="mt-2 flex flex-wrap gap-1.5">
+							<div className="flex flex-wrap gap-1.5">
 								{f.techStack.map((t) => (
 									<span
 										key={t}
-										className="rounded bg-secondary px-2 py-0.5 font-mono text-secondary-foreground text-xs"
+										className="rounded-md bg-secondary px-2 py-0.5 font-mono text-secondary-foreground text-xs"
 									>
 										{cap(t)}
 									</span>
@@ -297,10 +316,10 @@ function AgentContent({ agent, data }: { agent: string; data: unknown }) {
 			| undefined;
 		if (!s) return null;
 		return (
-			<BlurFade duration={0.35}>
+			<BlurFade duration={0.3}>
 				<div className="space-y-4">
 					{s.overallScore !== undefined && (
-						<div className="flex items-baseline gap-2">
+						<div className="flex items-baseline gap-1.5">
 							<span className="font-mono font-semibold text-3xl leading-none">
 								{s.overallScore}
 							</span>
@@ -322,119 +341,187 @@ function AgentContent({ agent, data }: { agent: string; data: unknown }) {
 	return null;
 }
 
+function RunningSteps({
+	steps,
+	isComplete,
+}: {
+	steps: string[];
+	isComplete: boolean;
+}) {
+	const [stepIndex, setStepIndex] = useState(0);
+
+	useEffect(() => {
+		if (isComplete) return;
+		const timers = [
+			setTimeout(() => setStepIndex(1), 1600),
+			setTimeout(() => setStepIndex(2), 3200),
+		];
+		return () => timers.forEach(clearTimeout);
+	}, [isComplete]);
+
+	const effectiveStep = isComplete ? steps.length : stepIndex;
+
+	return (
+		<div className="space-y-2.5 py-0.5">
+			{steps.map((step, i) => {
+				const isDone = i < effectiveStep;
+				const isActive = i === effectiveStep;
+				return (
+					<div
+						key={i}
+						className={`flex items-center gap-3 transition-opacity duration-300 ${
+							!isDone && !isActive ? "opacity-25" : ""
+						}`}
+					>
+						<span className="flex h-4 w-4 shrink-0 items-center justify-center">
+							{isDone ? (
+								<Check className="h-3 w-3 text-muted-foreground" />
+							) : isActive ? (
+								<span className="relative flex h-2 w-2">
+									<span className="absolute inset-0 animate-ping rounded-full bg-foreground/60 opacity-75" />
+									<span className="h-2 w-2 rounded-full bg-foreground/80" />
+								</span>
+							) : (
+								<span className="h-1.5 w-1.5 rounded-full border border-muted-foreground/30" />
+							)}
+						</span>
+						<span
+							className={`text-sm transition-colors ${
+								isDone
+									? "text-muted-foreground"
+									: isActive
+										? "text-foreground"
+										: "text-muted-foreground"
+							}`}
+						>
+							{step}
+						</span>
+					</div>
+				);
+			})}
+		</div>
+	);
+}
+
 function AgentItem({ agent }: { agent: AgentState }) {
 	const meta = AGENT_META[agent.name];
 	const [expanded, setExpanded] = useState(false);
-	const [phraseIndex, setPhraseIndex] = useState(0);
 
 	const isPending = agent.status === "pending";
 	const isRunning = agent.status === "running";
 	const isComplete = agent.status === "complete";
 
-	useEffect(() => {
-		if (!isRunning || !meta) return;
-		const id = setInterval(
-			() => setPhraseIndex((i) => (i + 1) % meta.phrases.length),
-			2500,
-		);
-		return () => clearInterval(id);
-	}, [isRunning, meta]);
-
 	if (!meta) return null;
 
-	const { label, phrases } = meta;
+	const { label, Icon, steps } = meta;
+	const canExpand = isRunning || isComplete;
 
 	return (
-		<div className="group border-border/60 border-b last:border-b-0">
+		<div>
 			<button
 				type="button"
-				onClick={() => !isPending && setExpanded(!expanded)}
-				className={`flex w-full items-center gap-4 px-4 py-4 text-left transition-colors ${
-					isPending ? "opacity-50" : "hover:bg-muted/30"
-				}`}
+				onClick={() => canExpand && setExpanded((v) => !v)}
+				className={`group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors ${
+					canExpand ? "cursor-pointer hover:bg-accent/50" : "cursor-default"
+				} ${isPending ? "opacity-35" : ""}`}
 				disabled={isPending}
 			>
-				<div className="shrink-0">
-					{isPending && <Circle className="h-5 w-5 text-muted-foreground/30" />}
+				{/* Status indicator */}
+				<span className="flex h-4 w-4 shrink-0 items-center justify-center">
+					{isPending && (
+						<span className="h-1.5 w-1.5 rounded-full border border-muted-foreground/40" />
+					)}
 					{isRunning && (
-						<span className="relative flex h-5 w-5">
-							<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500/40 opacity-75" />
-							<span className="relative inline-flex h-5 w-5 rounded-full bg-red-500" />
+						<span className="relative flex h-2 w-2">
+							<span className="absolute inset-0 animate-ping rounded-full bg-foreground/50 opacity-75" />
+							<span className="h-2 w-2 rounded-full bg-foreground/90" />
 						</span>
 					)}
-					{isComplete && <CheckCircle2 className="h-5 w-5 text-green-500" />}
-				</div>
+					{isComplete && (
+						<Check className="h-3.5 w-3.5 text-muted-foreground/60" />
+					)}
+				</span>
 
-				<div className="min-w-0 flex-1">
-					<div className="flex items-center gap-2">
-						<span className="font-medium text-foreground">{label}</span>
-						{isComplete && (
-							<span className="rounded-full bg-green-500/10 px-2 py-0.5 font-medium text-green-600 text-xs">
-								Done
-							</span>
-						)}
-						{isRunning && (
-							<span className="rounded-full bg-red-500/10 px-2 py-0.5 font-medium text-red-600 text-xs">
-								Running
-							</span>
-						)}
-					</div>
-				</div>
+				{/* Icon */}
+				<Icon
+					className={`h-4 w-4 shrink-0 ${isPending ? "text-muted-foreground/40" : "text-muted-foreground"}`}
+				/>
 
-				{!isPending && (
-					<ChevronDown
-						className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 ${
-							expanded ? "rotate-180" : ""
+				{/* Label */}
+				<span
+					className={`flex-1 text-sm ${isComplete ? "text-foreground/70" : isRunning ? "text-foreground" : "text-muted-foreground"}`}
+				>
+					{label}
+				</span>
+
+				{/* Expand chevron */}
+				{canExpand && (
+					<ChevronRight
+						className={`h-3.5 w-3.5 shrink-0 text-muted-foreground/40 transition-transform duration-200 ${
+							expanded ? "rotate-90" : ""
 						}`}
 					/>
 				)}
 			</button>
 
-			{expanded && (
-				<div className="px-4 pb-4 pl-[4.5rem]">
-					<div className="border-t pt-4">
-						{isRunning && (
-							<div className="flex items-start gap-3">
-								<span className="mt-1 flex h-2 w-2 shrink-0 items-center justify-center">
-									<span className="relative flex h-2 w-2">
-										<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
-										<span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
-									</span>
-								</span>
-								<p className="animate-pulse text-muted-foreground text-sm">
-									{phrases[phraseIndex]}
-								</p>
-							</div>
-						)}
-						{isComplete && (
-							<AgentContent agent={agent.name} data={agent.data} />
-						)}
-					</div>
+			{/* Expanded content */}
+			{expanded && canExpand && (
+				<div className="ml-[2.75rem] pt-1 pr-3 pb-2">
+					{isRunning && <RunningSteps steps={steps} isComplete={false} />}
+					{isComplete && (
+						<RunningStepsOrContent
+							agent={agent.name}
+							data={agent.data}
+							steps={steps}
+						/>
+					)}
 				</div>
 			)}
 		</div>
 	);
 }
 
+function RunningStepsOrContent({
+	agent,
+	data,
+	steps,
+}: {
+	agent: string;
+	data: unknown;
+	steps: string[];
+}) {
+	const [showContent, setShowContent] = useState(false);
+
+	useEffect(() => {
+		const timer = setTimeout(() => setShowContent(true), 400);
+		return () => clearTimeout(timer);
+	}, []);
+
+	if (!showContent) {
+		return <RunningSteps steps={steps} isComplete={true} />;
+	}
+
+	return <AgentContent agent={agent} data={data} />;
+}
+
 export function AgentAccordion({ agents }: { agents: AgentState[] }) {
 	if (agents.length === 0) return null;
 
+	const doneCount = agents.filter((a) => a.status === "complete").length;
+
 	return (
-		<div className="rounded-xl border bg-card">
-			<div className="border-b px-4 py-3">
-				<div className="flex items-center justify-between">
-					<h2 className="font-semibold text-lg">Analysis Agents</h2>
-					<span className="font-mono text-muted-foreground text-sm">
-						{agents.filter((a) => a.status === "complete").length}/
-						{agents.length}
-					</span>
-				</div>
+		<div className="space-y-0.5">
+			<div className="mb-3 flex items-center justify-between px-3">
+				<span className="font-mono text-[11px] text-muted-foreground/50 uppercase tracking-widest">
+					Agents
+				</span>
+				<span className="font-mono text-[11px] text-muted-foreground/50">
+					{doneCount}/{agents.length}
+				</span>
 			</div>
-			<div>
-				{agents.map((agent) => (
-					<AgentItem key={agent.name} agent={agent} />
-				))}
-			</div>
+			{agents.map((agent) => (
+				<AgentItem key={agent.name} agent={agent} />
+			))}
 		</div>
 	);
 }

@@ -25,21 +25,28 @@ export function UserMenu() {
 	if (!session) {
 		return (
 			<Link href="/login">
-				<Button variant="outline">Sign In</Button>
+				<Button variant="outline" size="sm">
+					Sign in
+				</Button>
 			</Link>
 		);
 	}
 
 	return (
 		<DropdownMenu>
-			<DropdownMenuTrigger render={<Button variant="outline" />}>
+			<DropdownMenuTrigger render={<Button variant="outline" size="sm" />}>
 				{session.user.name}
 			</DropdownMenuTrigger>
-			<DropdownMenuContent className="bg-card">
+			<DropdownMenuContent className="bg-card" align="end">
 				<DropdownMenuGroup>
 					<DropdownMenuLabel>My Account</DropdownMenuLabel>
 					<DropdownMenuSeparator />
 					<DropdownMenuItem>{session.user.email}</DropdownMenuItem>
+					<DropdownMenuSeparator />
+					<DropdownMenuItem render={<Link href="/dashboard" />}>
+						Dashboard
+					</DropdownMenuItem>
+					<DropdownMenuSeparator />
 					<DropdownMenuItem
 						variant="destructive"
 						onClick={() => {
@@ -52,7 +59,7 @@ export function UserMenu() {
 							});
 						}}
 					>
-						Sign Out
+						Sign out
 					</DropdownMenuItem>
 				</DropdownMenuGroup>
 			</DropdownMenuContent>

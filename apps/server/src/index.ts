@@ -6,12 +6,15 @@ import { env } from "@lens/env/server";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
+import { secureHeaders } from "hono/secure-headers";
+import { rateLimiter } from "hono-rate-limiter";
 
 import { streamAnalysis } from "./routes/analysis";
 
 const app = new Hono();
 
 app.use(logger());
+app.use(secureHeaders());
 app.use(
 	"/*",
 	cors({
@@ -19,6 +22,30 @@ app.use(
 		allowMethods: ["GET", "POST", "OPTIONS"],
 		allowHeaders: ["Content-Type", "Authorization"],
 		credentials: true,
+	}),
+);
+
+app.use(
+	"/api/auth/*",
+	rateLimiter({
+		windowMs: 15 * 60 * 1000,
+		limit: 10,
+		keyGenerator: (c) =>
+			c.req.header("x-forwarded-for") ??
+			c.req.header("cf-connecting-ip") ??
+			"unknown",
+	}),
+);
+
+app.use(
+	"/api/analysis/*",
+	rateLimiter({
+		windowMs: 10 * 60 * 1000,
+		limit: 5,
+		keyGenerator: (c) =>
+			c.req.header("x-forwarded-for") ??
+			c.req.header("cf-connecting-ip") ??
+			"unknown",
 	}),
 );
 
@@ -50,7 +77,6 @@ app.use(
 
 app.get("/", (c) => c.text("OK"));
 
-// idleTimeout: 0 disables Bun's 10s idle connection timeout, required for long-running streams
 export default {
 	fetch: app.fetch.bind(app),
 	idleTimeout: 0,

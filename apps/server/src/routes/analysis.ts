@@ -1,4 +1,6 @@
 import { analysisGraph, createLogger, toRunConfig } from "@lens/ai";
+import { db } from "@lens/db";
+import { analyses } from "@lens/db/schema/analyses";
 import type { Context as HonoContext } from "hono";
 
 type StreamEvent = Record<string, unknown>;
@@ -29,6 +31,9 @@ export async function streamAnalysis(
 	const writer = writable.getWriter();
 
 	let closed = false;
+	let savedParsedIdea: unknown = null;
+	let savedSynthesis: unknown = null;
+	const collectedAgentData: Record<string, unknown> = {};
 
 	const safeEmit = async (data: StreamEvent): Promise<void> => {
 		if (closed) return;
@@ -77,12 +82,30 @@ export async function streamAnalysis(
 					const nodeName = Object.keys(chunk as object)[0];
 					if (nodeName) {
 						await safeEmit({ type: "agent", agent: nodeName, data: chunk });
+						const update = (chunk as Record<string, Record<string, unknown>>)[
+							nodeName
+						];
+						collectedAgentData[nodeName] = update;
+						if (nodeName === "parser_agent")
+							savedParsedIdea = update?.parsedIdea ?? null;
+						if (nodeName === "synthesis_agent")
+							savedSynthesis = update?.synthesis ?? null;
 					}
 				}
 			}
 
 			await safeEmit({ type: "complete" });
 			logger.info("Streaming completed");
+
+			if (savedParsedIdea && savedSynthesis) {
+				await db.insert(analyses).values({
+					userId,
+					rawIdea,
+					parsedIdea: savedParsedIdea,
+					synthesis: savedSynthesis,
+					agentData: collectedAgentData,
+				});
+			}
 		} catch (error) {
 			const msg = error instanceof Error ? error.message : String(error);
 			logger.error("Streaming failed", { error: msg });

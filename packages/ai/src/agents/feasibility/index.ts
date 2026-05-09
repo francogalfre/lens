@@ -1,11 +1,9 @@
 import type { RunnableConfig } from "@langchain/core/runnables";
-
-import {
-	type FeasibilityResult,
-	FeasibilityResultSchema,
-} from "@/graph/schemas";
+import { createAgent } from "langchain";
+import { FEASIBILITY_PROMPT } from "@/agents/feasibility/prompt";
+import { type FeasibilityResult, FeasibilityResultSchema } from "@/types";
+import { createLoggingMiddleware } from "@/utils/middleware";
 import { createModel } from "@/utils/model";
-import { FEASIBILITY_PROMPT } from "./prompt";
 
 export async function runFeasibility(
 	idea: string,
@@ -13,11 +11,21 @@ export async function runFeasibility(
 ): Promise<FeasibilityResult> {
 	const model = createModel(1200);
 
-	return model.withStructuredOutput(FeasibilityResultSchema).invoke(
-		[
-			{ role: "system", content: FEASIBILITY_PROMPT },
-			{ role: "user", content: idea },
-		],
+	const feasibilityAgent = createAgent({
+		name: "Feasibility Agent",
+		model,
+		systemPrompt: FEASIBILITY_PROMPT,
+		responseFormat: FeasibilityResultSchema,
+		tools: [],
+		middleware: [createLoggingMiddleware("Feasibility Agent")],
+	});
+
+	const result = await feasibilityAgent.invoke(
+		{
+			messages: [{ role: "user", content: idea }],
+		},
 		config,
 	);
+
+	return result.structuredResponse;
 }

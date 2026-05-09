@@ -1,8 +1,7 @@
 import type { RunnableConfig } from "@langchain/core/runnables";
 import { getWriter } from "@langchain/langgraph";
-
+import { runParser } from "@/agents/parser/index";
 import type { State } from "@/graph";
-import { runParser } from "./index";
 
 export const parserNode = async (state: State, config: RunnableConfig) => {
 	getWriter()?.({ type: "nodeStart", agent: "parser_agent" });

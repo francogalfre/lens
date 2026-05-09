@@ -1,88 +1,87 @@
 "use client";
 
-import { Button } from "@lens/ui/components/button";
-import { Sparkles } from "lucide-react";
+import { Globe, Lightbulb, ShieldAlert, Sparkles } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { IdeaInput } from "@/components/analysis/idea-input";
-import { useAnalysis } from "@/components/analysis/use-analysis";
-import { AgentAccordion } from "@/components/landing/agent-accordion";
-import { SynthesisCard } from "@/components/landing/synthesis-card";
 import { authClient } from "@/lib/auth-client";
 
+const FEATURES = [
+	{
+		icon: Globe,
+		title: "Market research",
+		description:
+			"Discovers real competitors and market signals via live web search",
+	},
+	{
+		icon: ShieldAlert,
+		title: "Risk analysis",
+		description: "Identifies weaknesses, risks, and critical assumptions",
+	},
+	{
+		icon: Lightbulb,
+		title: "Opportunity scouting",
+		description: "Finds gaps and differentiators you can actually exploit",
+	},
+];
+
 export default function Home() {
-	const {
-		agents,
-		synthesis,
-		errorMsg,
-		isRunning,
-		isComplete,
-		submitIdea,
-		reset,
-	} = useAnalysis();
-	const { isPending: isSessionPending } = authClient.useSession();
+	const router = useRouter();
+	const { data: session, isPending } = authClient.useSession();
+
+	const handleSubmit = (idea: string) => {
+		if (!idea.trim()) return;
+		if (!session) {
+			sessionStorage.setItem("analyzingIdea", idea);
+			router.push("/login?callbackUrl=/analyze");
+			return;
+		}
+		sessionStorage.setItem("analyzingIdea", idea);
+		router.push("/analyze");
+	};
 
 	return (
-		<div className="flex min-h-[calc(100vh-4rem)] flex-col">
-			<div className="flex flex-1 flex-col items-center justify-center px-4 py-8 sm:py-16">
-				<div className="w-full max-w-2xl space-y-8">
-					<header
-						className={`text-center transition-all duration-500 ${isRunning ? "opacity-50" : "opacity-100"}`}
-					>
-						<div className="mb-4 inline-flex items-center justify-center rounded-full bg-primary/10 px-4 py-1.5">
-							<Sparkles className="mr-2 h-4 w-4 text-primary" />
-							<span className="font-medium text-primary text-sm">
-								AI-Powered Analysis
-							</span>
-						</div>
-						<h1 className="font-bold text-4xl tracking-tight sm:text-5xl">
-							What&apos;s your idea?
-						</h1>
-						<p className="mt-4 text-lg text-muted-foreground">
-							Describe it briefly — our AI agents will analyze the market,
-							assess risks, and find opportunities.
-						</p>
-					</header>
+		<div className="flex min-h-[calc(100vh-3.5rem)] flex-col items-center justify-center px-4 py-12">
+			<div className="w-full max-w-2xl space-y-8">
+				{/* Hero */}
+				<header className="text-center">
+					<div className="mb-5 inline-flex items-center gap-2 rounded-full border border-border/50 bg-card/60 px-3.5 py-1.5">
+						<Sparkles className="h-3.5 w-3.5 text-muted-foreground" />
+						<span className="text-muted-foreground text-xs">
+							AI-powered analysis
+						</span>
+					</div>
+					<h1 className="font-semibold text-[2.75rem] leading-none tracking-tight sm:text-6xl">
+						What&apos;s your idea?
+					</h1>
+					<p className="mt-4 text-base text-muted-foreground sm:text-lg">
+						Describe it briefly — our agents analyze the market,
+						<br className="hidden sm:block" /> assess risks, and find
+						opportunities.
+					</p>
+				</header>
 
-					<IdeaInput
-						onSubmit={submitIdea}
-						isRunning={isRunning}
-						isPendingAuth={isSessionPending}
-					/>
+				<IdeaInput
+					onSubmit={handleSubmit}
+					isRunning={false}
+					isPendingAuth={isPending}
+				/>
 
-					{errorMsg && (
+				{/* Feature cards */}
+				<div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+					{FEATURES.map(({ icon: Icon, title, description }) => (
 						<div
-							role="alert"
-							className="flex items-center gap-3 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-destructive"
+							key={title}
+							className="space-y-2 rounded-2xl border border-border/40 bg-card/40 p-4"
 						>
-							<span className="font-medium">Error:</span>
-							<span className="text-sm">{errorMsg}</span>
-							<Button
-								variant="ghost"
-								size="sm"
-								className="ml-auto hover:bg-destructive/20"
-								onClick={reset}
-							>
-								Try again
-							</Button>
+							<Icon className="h-4 w-4 text-muted-foreground/70" />
+							<p className="font-medium text-foreground/80 text-sm">{title}</p>
+							<p className="text-muted-foreground text-xs leading-relaxed">
+								{description}
+							</p>
 						</div>
-					)}
+					))}
 				</div>
 			</div>
-
-			{(agents.length > 0 || synthesis) && (
-				<div className="w-full border-t bg-muted/20">
-					<div className="mx-auto max-w-4xl px-4 py-8">
-						{agents.length > 0 && <AgentAccordion agents={agents} />}
-						{synthesis && <SynthesisCard synthesis={synthesis} />}
-						{isComplete && (
-							<div className="mt-6 flex justify-center">
-								<Button variant="outline" onClick={reset}>
-									Start New Analysis
-								</Button>
-							</div>
-						)}
-					</div>
-				</div>
-			)}
 		</div>
 	);
 }

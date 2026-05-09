@@ -1,1 +1,2 @@
-export * from "./model";
+export * from "@/utils/format";
+export * from "@/utils/model";

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 
 import { authClient } from "@/lib/auth-client";
 import {
@@ -28,7 +28,6 @@ export function useAnalysis(): UseAnalysisReturn {
 	const [agents, setAgents] = useState<AgentState[]>([]);
 	const [synthesis, setSynthesis] = useState<SynthesisResult | null>(null);
 	const [errorMsg, setErrorMsg] = useState<string | null>(null);
-	const textareaRef = useRef<HTMLTextAreaElement>(null);
 
 	const router = useRouter();
 	const { data: session, isPending: isSessionPending } =
@@ -57,16 +56,7 @@ export function useAnalysis(): UseAnalysisReturn {
 				const agentName = event.agent;
 				setAgents((prev) =>
 					prev.map((a) =>
-						a.name === agentName
-							? {
-									...a,
-									status: "running",
-									messages: [
-										...(a.messages || []),
-										{ type: "status", text: `Running ${a.name}...` },
-									],
-								}
-							: a,
+						a.name === agentName ? { ...a, status: "running" } : a,
 					),
 				);
 				return;
@@ -82,7 +72,7 @@ export function useAnalysis(): UseAnalysisReturn {
 				) {
 					setAgents((prev) =>
 						prev
-							.filter((a) => a.name === "parser")
+							.filter((a) => a.name === "parser_agent")
 							.map((a) => ({ ...a, status: "complete" as const, data })),
 					);
 					return;
@@ -90,17 +80,7 @@ export function useAnalysis(): UseAnalysisReturn {
 
 				setAgents((prev) =>
 					prev.map((a) =>
-						a.name === agentName
-							? {
-									...a,
-									status: "complete",
-									data,
-									messages: [
-										...(a.messages || []),
-										{ type: "complete", text: `Completed ${agentName}` },
-									],
-								}
-							: a,
+						a.name === agentName ? { ...a, status: "complete", data } : a,
 					),
 				);
 
@@ -127,8 +107,8 @@ export function useAnalysis(): UseAnalysisReturn {
 			if (!rawIdea.trim() || status === "running") return;
 
 			if (!session && !isSessionPending) {
-				sessionStorage.setItem("pendingIdea", rawIdea);
-				router.push("/login?callbackUrl=/");
+				sessionStorage.setItem("analyzingIdea", rawIdea);
+				router.push("/login?callbackUrl=/analyze");
 				return;
 			}
 			if (isSessionPending) return;
@@ -146,8 +126,8 @@ export function useAnalysis(): UseAnalysisReturn {
 				});
 
 				if (response.status === 401) {
-					sessionStorage.setItem("pendingIdea", rawIdea);
-					router.push("/login?callbackUrl=/");
+					sessionStorage.setItem("analyzingIdea", rawIdea);
+					router.push("/login?callbackUrl=/analyze");
 					return;
 				}
 
@@ -190,12 +170,10 @@ export function useAnalysis(): UseAnalysisReturn {
 	);
 
 	const reset = useCallback(() => {
-		setIdea("");
 		setStatus("idle");
 		setAgents([]);
 		setSynthesis(null);
 		setErrorMsg(null);
-		textareaRef.current?.focus();
 	}, []);
 
 	return {

@@ -16,9 +16,6 @@ const signInSchema = z.object({
 });
 
 function forwardAuthHeaders(from: Response, to: Headers): void {
-	// Set-Cookie cannot be forwarded via forEach — the Headers API joins multiple
-	// Set-Cookie values with commas, which corrupts cookie attributes like expires.
-	// getSetCookie() returns each cookie as a separate, untouched string.
 	for (const cookie of from.headers.getSetCookie()) {
 		to.append("set-cookie", cookie);
 	}

@@ -1,8 +1,7 @@
 import type { RunnableConfig } from "@langchain/core/runnables";
 import { getWriter } from "@langchain/langgraph";
-
+import { runSynthesis } from "@/agents/synthesis/index";
 import type { State } from "@/graph";
-import { runSynthesis } from "./index";
 
 export const synthesisNode = async (state: State, config: RunnableConfig) => {
 	if (state.validationError) return {};
