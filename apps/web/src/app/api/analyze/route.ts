@@ -23,6 +23,10 @@ export async function POST(req: NextRequest) {
 		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 	}
 
+	if (upstream.status === 429) {
+		return NextResponse.json(await upstream.json(), { status: 429 });
+	}
+
 	if (!upstream.ok || !upstream.body) {
 		return NextResponse.json({ error: "Upstream error" }, { status: 502 });
 	}

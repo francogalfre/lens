@@ -9,7 +9,9 @@ import { logger } from "hono/logger";
 import { secureHeaders } from "hono/secure-headers";
 import { rateLimiter } from "hono-rate-limiter";
 
+import { checkAndIncrementUsage } from "./lib/check-usage";
 import { streamAnalysis } from "./routes/analysis";
+import { polarWebhookRouter } from "./routes/polar-webhook";
 
 const app = new Hono();
 
@@ -49,6 +51,9 @@ app.use(
 	}),
 );
 
+// Webhook must receive raw body — mount before any body-parsing middleware
+app.route("/", polarWebhookRouter);
+
 app.on(["POST", "GET"], "/api/auth/*", (c) => auth.handler(c.req.raw));
 
 app.post("/api/analysis/stream", async (c) => {
@@ -56,6 +61,20 @@ app.post("/api/analysis/stream", async (c) => {
 	if (!session) {
 		return c.json({ error: "Unauthorized" }, 401);
 	}
+
+	const usage = await checkAndIncrementUsage(session.user.id);
+	if (!usage.allowed) {
+		return c.json(
+			{
+				error: "Daily limit reached",
+				code: "LIMIT_REACHED",
+				usedToday: usage.count,
+				limit: usage.limit,
+			},
+			429,
+		);
+	}
+
 	return streamAnalysis(c, session.user.id);
 });
 

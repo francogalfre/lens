@@ -12,8 +12,15 @@ import { authClient } from "@/lib/auth-client";
 export default function AnalyzePage() {
 	const router = useRouter();
 	const { data: session, isPending } = authClient.useSession();
-	const { agents, errorMsg, isRunning, isComplete, submitIdea, reset } =
-		useAnalysis();
+	const {
+		agents,
+		errorMsg,
+		isRunning,
+		isComplete,
+		limitReached,
+		submitIdea,
+		reset,
+	} = useAnalysis();
 	const startedRef = useRef(false);
 	const [currentIdea, setCurrentIdea] = useState<string>("");
 
@@ -77,8 +84,22 @@ export default function AnalyzePage() {
 			{/* Agents */}
 			<AgentAccordion agents={agents} />
 
+			{/* Limit reached */}
+			{limitReached && (
+				<div className="mt-6 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-4 text-left">
+					<p className="font-medium text-sm">Daily limit reached</p>
+					<p className="mt-1 text-muted-foreground text-sm">
+						You&apos;ve used all your analyses for today. Resets at midnight
+						UTC.
+					</p>
+					<Link href="/upgrade" className="mt-3 inline-block">
+						<Button size="sm">Upgrade to Premium — 3/day</Button>
+					</Link>
+				</div>
+			)}
+
 			{/* Error */}
-			{errorMsg && (
+			{errorMsg && !limitReached && (
 				<div className="mt-6 rounded-xl border border-destructive/20 bg-destructive/5 px-4 py-3">
 					<p className="text-destructive text-sm">{errorMsg}</p>
 				</div>

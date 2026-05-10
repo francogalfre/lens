@@ -19,6 +19,7 @@ interface UseAnalysisReturn {
 	errorMsg: string | null;
 	isRunning: boolean;
 	isComplete: boolean;
+	limitReached: boolean;
 	submitIdea: (idea: string) => Promise<void>;
 	reset: () => void;
 }
@@ -28,6 +29,7 @@ export function useAnalysis(): UseAnalysisReturn {
 	const [agents, setAgents] = useState<AgentState[]>([]);
 	const [synthesis, setSynthesis] = useState<SynthesisResult | null>(null);
 	const [errorMsg, setErrorMsg] = useState<string | null>(null);
+	const [limitReached, setLimitReached] = useState(false);
 
 	const router = useRouter();
 	const { data: session, isPending: isSessionPending } =
@@ -131,6 +133,12 @@ export function useAnalysis(): UseAnalysisReturn {
 					return;
 				}
 
+				if (response.status === 429) {
+					setLimitReached(true);
+					setStatus("error");
+					return;
+				}
+
 				if (!response.ok || !response.body) {
 					throw new Error("Failed to connect to analysis service");
 				}
@@ -174,6 +182,7 @@ export function useAnalysis(): UseAnalysisReturn {
 		setAgents([]);
 		setSynthesis(null);
 		setErrorMsg(null);
+		setLimitReached(false);
 	}, []);
 
 	return {
@@ -183,6 +192,7 @@ export function useAnalysis(): UseAnalysisReturn {
 		errorMsg,
 		isRunning,
 		isComplete,
+		limitReached,
 		submitIdea,
 		reset,
 	};
