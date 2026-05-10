@@ -1,39 +1,10 @@
 import { auth } from "@lens/auth";
 import { TRPCError } from "@trpc/server";
-import { z } from "zod";
 
-import { protectedProcedure, publicProcedure, router } from "../index";
-
-const signUpSchema = z.object({
-	name: z.string().min(2, "Name must be at least 2 characters"),
-	email: z.string().email("Invalid email"),
-	password: z.string().min(8, "Password must be at least 8 characters"),
-});
-
-const signInSchema = z.object({
-	email: z.string().email("Invalid email"),
-	password: z.string().min(1, "Password is required"),
-});
-
-function forwardAuthHeaders(from: Response, to: Headers): void {
-	for (const cookie of from.headers.getSetCookie()) {
-		to.append("set-cookie", cookie);
-	}
-	from.headers.forEach((value, key) => {
-		if (key.toLowerCase() !== "set-cookie") {
-			to.append(key, value);
-		}
-	});
-}
-
-async function parseAuthError(response: Response): Promise<string> {
-	try {
-		const data = (await response.json()) as { message?: string };
-		return data.message ?? "Authentication failed";
-	} catch {
-		return "Authentication failed";
-	}
-}
+import { signInSchema, signUpSchema } from "@/schemas/auth";
+import { forwardAuthHeaders, parseAuthError } from "@/services/auth";
+import { checkLoginRateLimit } from "@/services/rate-limit";
+import { protectedProcedure, publicProcedure, router } from "@/trpc";
 
 export const authRouter = router({
 	signUp: publicProcedure
@@ -59,6 +30,8 @@ export const authRouter = router({
 	signIn: publicProcedure
 		.input(signInSchema)
 		.mutation(async ({ input, ctx }) => {
+			checkLoginRateLimit(ctx.requestHeaders);
+
 			const response = await auth.api.signInEmail({
 				body: input,
 				asResponse: true,

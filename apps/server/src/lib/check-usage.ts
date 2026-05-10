@@ -24,8 +24,6 @@ export async function checkAndIncrementUsage(
 	const limit = activeSub.length > 0 ? PREMIUM_LIMIT : FREE_LIMIT;
 	const date = new Date().toISOString().slice(0, 10);
 
-	// Atomic conditional upsert — row-level lock prevents race conditions.
-	// If count >= limit the WHERE clause is false: DO UPDATE is skipped, 0 rows returned.
 	const result = await db.execute<{ count: number }>(sql`
 		INSERT INTO daily_usage (id, user_id, date, count, created_at)
 		VALUES (${crypto.randomUUID()}, ${userId}, ${date}, 1, NOW())

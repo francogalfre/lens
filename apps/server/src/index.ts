@@ -51,7 +51,6 @@ app.use(
 	}),
 );
 
-// Webhook must receive raw body — mount before any body-parsing middleware
 app.route("/", polarWebhookRouter);
 
 app.on(["POST", "GET"], "/api/auth/*", (c) => auth.handler(c.req.raw));

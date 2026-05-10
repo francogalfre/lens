@@ -1,19 +1,10 @@
-import { protectedProcedure, publicProcedure, router } from "../index";
-import { analysisRouter } from "./analysis";
-import { authRouter } from "./auth";
-import { dashboardRouter } from "./dashboard";
-import { subscriptionRouter } from "./subscription";
+import { analysisRouter } from "@/routers/analysis";
+import { authRouter } from "@/routers/auth";
+import { dashboardRouter } from "@/routers/dashboard";
+import { subscriptionRouter } from "@/routers/subscription";
+import { router } from "@/trpc";
 
 export const appRouter = router({
-	healthCheck: publicProcedure.query(() => {
-		return "OK";
-	}),
-	privateData: protectedProcedure.query(({ ctx }) => {
-		return {
-			message: "This is private",
-			user: ctx.session.user,
-		};
-	}),
 	analysis: analysisRouter,
 	auth: authRouter,
 	dashboard: dashboardRouter,
