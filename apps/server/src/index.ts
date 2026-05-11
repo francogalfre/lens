@@ -1,22 +1,23 @@
 import { trpcServer } from "@hono/trpc-server";
 import { createContext } from "@lens/api/context";
-import { appRouter } from "@lens/api/routers/index";
-import { auth } from "@lens/auth";
+import { appRouter } from "@lens/api/routers";
 import { env } from "@lens/env/server";
 import { Hono } from "hono";
+import { bodyLimit } from "hono/body-limit";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { secureHeaders } from "hono/secure-headers";
-import { rateLimiter } from "hono-rate-limiter";
 
-import { checkAndIncrementUsage } from "./lib/check-usage";
-import { streamAnalysis } from "./routes/analysis";
-import { polarWebhookRouter } from "./routes/polar-webhook";
+import { analysisRateLimit, authRateLimit } from "@/middleware/rate-limit";
+import { analysisHandler } from "@/routes/analysis";
+import { authHandler } from "@/routes/auth";
+import { polarWebhookRouter } from "@/routes/polar-webhook";
 
 const app = new Hono();
 
 app.use(logger());
 app.use(secureHeaders());
+
 app.use(
 	"/*",
 	cors({
@@ -27,55 +28,17 @@ app.use(
 	}),
 );
 
-app.use(
-	"/api/auth/*",
-	rateLimiter({
-		windowMs: 15 * 60 * 1000,
-		limit: 10,
-		keyGenerator: (c) =>
-			c.req.header("x-forwarded-for") ??
-			c.req.header("cf-connecting-ip") ??
-			"unknown",
-	}),
-);
-
-app.use(
-	"/api/analysis/*",
-	rateLimiter({
-		windowMs: 10 * 60 * 1000,
-		limit: 5,
-		keyGenerator: (c) =>
-			c.req.header("x-forwarded-for") ??
-			c.req.header("cf-connecting-ip") ??
-			"unknown",
-	}),
-);
+app.use("/api/auth/*", authRateLimit);
+app.use("/api/analysis/*", analysisRateLimit);
 
 app.route("/", polarWebhookRouter);
 
-app.on(["POST", "GET"], "/api/auth/*", (c) => auth.handler(c.req.raw));
-
-app.post("/api/analysis/stream", async (c) => {
-	const session = await auth.api.getSession({ headers: c.req.raw.headers });
-	if (!session) {
-		return c.json({ error: "Unauthorized" }, 401);
-	}
-
-	const usage = await checkAndIncrementUsage(session.user.id);
-	if (!usage.allowed) {
-		return c.json(
-			{
-				error: "Daily limit reached",
-				code: "LIMIT_REACHED",
-				usedToday: usage.count,
-				limit: usage.limit,
-			},
-			429,
-		);
-	}
-
-	return streamAnalysis(c, session.user.id);
-});
+app.on(["POST", "GET"], "/api/auth/*", authHandler);
+app.post(
+	"/api/analysis/stream",
+	bodyLimit({ maxSize: 50 * 1024 }),
+	analysisHandler,
+);
 
 app.use(
 	"/trpc/*",

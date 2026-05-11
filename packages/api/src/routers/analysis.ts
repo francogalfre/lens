@@ -1,6 +1,8 @@
+import { TRPCError } from "@trpc/server";
+
 import { analyzeInputSchema } from "@/schemas/analysis";
 import { runAnalysis } from "@/services/analysis";
-import { claimUsageSlot } from "@/services/subscription";
+import { checkAndIncrementUsage } from "@/services/subscription";
 import { protectedProcedure, router } from "@/trpc";
 
 export const analysisRouter = router({
@@ -8,7 +10,15 @@ export const analysisRouter = router({
 		.input(analyzeInputSchema)
 		.mutation(async ({ input, ctx }) => {
 			const userId = ctx.session.user.id;
-			await claimUsageSlot(userId);
+
+			const usage = await checkAndIncrementUsage(userId);
+			if (!usage.allowed) {
+				throw new TRPCError({
+					code: "FORBIDDEN",
+					message: "Daily analysis limit reached. Upgrade to premium for more.",
+				});
+			}
+
 			return runAnalysis(userId, input.rawIdea);
 		}),
 });

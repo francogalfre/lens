@@ -13,13 +13,20 @@ function getIp(headers: Headers): string {
 	);
 }
 
+function evictExpired(): void {
+	const now = Date.now();
+	for (const [key, entry] of attempts) {
+		if (now > entry.resetAt) attempts.delete(key);
+	}
+}
+
 export function checkLoginRateLimit(headers: Headers): void {
 	const ip = getIp(headers);
-
 	const now = Date.now();
 	const entry = attempts.get(ip);
 
 	if (!entry || now > entry.resetAt) {
+		evictExpired();
 		attempts.set(ip, { count: 1, resetAt: now + WINDOW_MS });
 		return;
 	}

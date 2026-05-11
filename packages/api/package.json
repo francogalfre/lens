@@ -5,8 +5,20 @@
 		".": {
 			"default": "./src/index.ts"
 		},
-		"./*": {
-			"default": "./src/*.ts"
+		"./context": {
+			"default": "./src/context.ts"
+		},
+		"./config": {
+			"default": "./src/config.ts"
+		},
+		"./routers": {
+			"default": "./src/routers/index.ts"
+		},
+		"./services/analysis": {
+			"default": "./src/services/analysis.ts"
+		},
+		"./services/subscription": {
+			"default": "./src/services/subscription.ts"
 		}
 	},
 	"scripts": {},
