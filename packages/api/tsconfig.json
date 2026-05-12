@@ -6,6 +6,8 @@
 		"sourceMap": true,
 		"outDir": "dist",
 		"composite": true,
+		"baseUrl": ".",
+		"ignoreDeprecations": "6.0",
 		"paths": {
 			"@/*": ["./src/*"]
 		}

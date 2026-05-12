@@ -3,6 +3,8 @@
 	"compilerOptions": {
 		"jsx": "react-jsx",
 		"lib": ["ESNext", "DOM", "DOM.Iterable"],
+		"baseUrl": ".",
+		"ignoreDeprecations": "6.0",
 		"paths": {
 			"@lens/ui/*": ["./src/*"]
 		}

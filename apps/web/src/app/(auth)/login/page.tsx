@@ -1,17 +1,24 @@
 "use client";
 
-import { Button } from "@lens/ui/components/button";
+import {
+	ArrowPathIcon,
+	EyeIcon,
+	EyeSlashIcon,
+} from "@heroicons/react/24/outline";
 import { Input } from "@lens/ui/components/input";
 import { Label } from "@lens/ui/components/label";
 import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { motion } from "motion/react";
+import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
-import { trpc } from "@/utils/trpc";
+
+import lensLogo from "@/assets/lens.svg";
+import { trpc } from "@/lib/trpc";
 
 const schema = z.object({
 	email: z.string().email("Invalid email"),
@@ -23,45 +30,57 @@ export default function LoginPage() {
 	const callbackUrl = searchParams.get("callbackUrl") ?? "/";
 	const [showPassword, setShowPassword] = useState(false);
 
-	const { mutateAsync: signIn } = useMutation(
-		trpc.auth.signIn.mutationOptions(),
+	const mutation = useMutation(
+		trpc.auth.signIn.mutationOptions({
+			onSuccess: () => {
+				window.location.href = callbackUrl;
+			},
+			onError: (error: unknown) => {
+				toast.error(error instanceof Error ? error.message : "Sign in failed");
+			},
+		}),
 	);
 
 	const form = useForm({
 		defaultValues: { email: "", password: "" },
 		validators: { onSubmit: schema },
-		onSubmit: async ({ value }) => {
-			try {
-				await signIn(value);
-				window.location.href = callbackUrl;
-			} catch (err) {
-				toast.error(err instanceof Error ? err.message : "Sign in failed");
-			}
+		onSubmit: ({ value }) => {
+			mutation.mutate(value);
 		},
 	});
 
 	return (
-		<div className="w-full max-w-sm">
-			{/* Logo */}
+		<motion.div
+			initial={{ opacity: 0, y: 12 }}
+			animate={{ opacity: 1, y: 0 }}
+			transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+			className="w-full max-w-sm"
+		>
 			<Link
 				href="/"
-				className="mb-10 inline-flex items-center gap-2 text-foreground/80 transition-opacity hover:opacity-70"
+				className="mb-10 inline-flex items-center gap-2.5 transition-opacity hover:opacity-75"
 			>
-				<div className="flex h-6 w-6 items-center justify-center rounded-md bg-foreground">
-					<div className="h-2.5 w-2.5 rounded-sm bg-background" />
-				</div>
-				<span className="font-semibold tracking-tight">Lens</span>
+				<Image
+					src={lensLogo}
+					alt="Lens"
+					width={22}
+					height={22}
+					className="dark:invert"
+				/>
+				<span className="font-semibold text-foreground text-sm tracking-tight">
+					Lens
+				</span>
 			</Link>
 
-			{/* Heading */}
 			<div className="mb-8">
-				<h1 className="font-semibold text-2xl tracking-tight">Welcome back</h1>
-				<p className="mt-1.5 text-muted-foreground text-sm">
-					Sign in to your account to continue
+				<h1 className="font-medium text-3xl text-foreground leading-tight tracking-tight">
+					Welcome back
+				</h1>
+				<p className="mt-1.5 text-foreground/55 text-sm">
+					Sign in to continue.
 				</p>
 			</div>
 
-			{/* Form */}
 			<form
 				onSubmit={(e) => {
 					e.preventDefault();
@@ -73,8 +92,8 @@ export default function LoginPage() {
 				<form.Field name="email">
 					{(field) => (
 						<div className="space-y-1.5">
-							<Label htmlFor="email" className="text-muted-foreground text-xs">
-								Email address
+							<Label htmlFor="email" className="text-[11px] text-foreground/55">
+								Email
 							</Label>
 							<Input
 								id="email"
@@ -84,7 +103,7 @@ export default function LoginPage() {
 								onBlur={field.handleBlur}
 								onChange={(e) => field.handleChange(e.target.value)}
 								autoComplete="email"
-								className="h-10 rounded-xl border-white/10 bg-white/[0.04] placeholder:text-muted-foreground/40 focus-visible:border-white/20 focus-visible:ring-0"
+								className="h-11 rounded-xl border-border bg-card/40 px-3.5 text-foreground placeholder:text-foreground/30 focus-visible:border-foreground/25 focus-visible:ring-0"
 							/>
 							{field.state.meta.errors.map((err) => (
 								<p key={String(err)} className="text-destructive text-xs">
@@ -100,7 +119,7 @@ export default function LoginPage() {
 						<div className="space-y-1.5">
 							<Label
 								htmlFor="password"
-								className="text-muted-foreground text-xs"
+								className="text-[11px] text-foreground/55"
 							>
 								Password
 							</Label>
@@ -113,19 +132,19 @@ export default function LoginPage() {
 									onBlur={field.handleBlur}
 									onChange={(e) => field.handleChange(e.target.value)}
 									autoComplete="current-password"
-									className="h-10 rounded-xl border-white/10 bg-white/[0.04] pr-10 placeholder:text-muted-foreground/40 focus-visible:border-white/20 focus-visible:ring-0"
+									className="h-11 rounded-xl border-border bg-card/40 px-3.5 pr-10 text-foreground placeholder:text-foreground/30 focus-visible:border-foreground/25 focus-visible:ring-0"
 								/>
 								<button
 									type="button"
 									tabIndex={-1}
 									onClick={() => setShowPassword((v) => !v)}
-									className="absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground/50 transition-colors hover:text-muted-foreground"
+									className="absolute top-1/2 right-3 -translate-y-1/2 text-foreground/40 transition-colors hover:text-foreground"
 									aria-label={showPassword ? "Hide password" : "Show password"}
 								>
 									{showPassword ? (
-										<EyeOff className="h-4 w-4" />
+										<EyeSlashIcon className="h-4 w-4" />
 									) : (
-										<Eye className="h-4 w-4" />
+										<EyeIcon className="h-4 w-4" />
 									)}
 								</button>
 							</div>
@@ -145,33 +164,33 @@ export default function LoginPage() {
 					})}
 				>
 					{({ canSubmit, isSubmitting }) => (
-						<Button
+						<button
 							type="submit"
-							className="mt-1 h-10 w-full rounded-xl font-medium"
-							disabled={!canSubmit || isSubmitting}
+							className="mt-2 inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-full bg-foreground font-medium text-background text-sm transition-all hover:bg-foreground/90 disabled:opacity-60"
+							disabled={!canSubmit || isSubmitting || mutation.isPending}
 						>
-							{isSubmitting ? (
+							{isSubmitting || mutation.isPending ? (
 								<>
-									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+									<ArrowPathIcon className="h-4 w-4 animate-spin" />
 									Signing in…
 								</>
 							) : (
 								"Continue"
 							)}
-						</Button>
+						</button>
 					)}
 				</form.Subscribe>
 			</form>
 
-			<p className="mt-6 text-muted-foreground text-sm">
+			<p className="mt-6 text-foreground/55 text-sm">
 				No account?{" "}
 				<Link
 					href={`/register?callbackUrl=${encodeURIComponent(callbackUrl)}`}
-					className="text-foreground/80 underline underline-offset-4 transition-opacity hover:opacity-70"
+					className="text-foreground underline-offset-4 transition-colors hover:underline"
 				>
 					Create one
 				</Link>
 			</p>
-		</div>
+		</motion.div>
 	);
 }

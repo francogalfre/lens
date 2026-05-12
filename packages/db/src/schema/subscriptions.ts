@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { index, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { boolean, index, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 
 import { user } from "./auth";
 
@@ -15,6 +15,7 @@ export const subscriptions = pgTable(
 		productId: text("product_id").notNull(),
 		currency: text("currency").notNull(),
 		currentPeriodEnd: timestamp("current_period_end"),
+		cancelAtPeriodEnd: boolean("cancel_at_period_end").default(false).notNull(),
 		createdAt: timestamp("created_at").defaultNow().notNull(),
 		updatedAt: timestamp("updated_at")
 			.defaultNow()

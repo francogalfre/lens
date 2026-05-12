@@ -1,3 +1,6 @@
 {
-	"extends": "@lens/config/tsconfig.base.json"
+	"extends": "@lens/config/tsconfig.base.json",
+	"compilerOptions": {
+		"ignoreDeprecations": "6.0"
+	}
 }

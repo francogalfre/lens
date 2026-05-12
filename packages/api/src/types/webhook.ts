@@ -5,6 +5,7 @@ export type SubscriptionEvent = {
 		currency: string;
 		productId: string;
 		currentPeriodEnd: Date;
+		cancelAtPeriodEnd?: boolean;
 		customer: {
 			id: string;
 			email?: string | null;

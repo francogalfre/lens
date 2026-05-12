@@ -20,7 +20,13 @@
 			}
 		],
 		"paths": {
-			"@/*": ["./src/*"],
+			"@/*": ["./src/*", "../../packages/api/src/*", "../../packages/ai/src/*"],
+			"@lens/api/routers": ["../../packages/api/src/routers"],
+			"@lens/api/routers/*": ["../../packages/api/src/routers/*"],
+			"@lens/api": ["../../packages/api/src"],
+			"@lens/auth": ["../../packages/auth/src"],
+			"@lens/db": ["../../packages/db/src"],
+			"@lens/env/*": ["../../packages/env/src/*"],
 			"@lens/ui/*": ["../../packages/ui/src/*"]
 		}
 	},

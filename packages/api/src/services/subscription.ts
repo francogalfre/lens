@@ -71,6 +71,7 @@ export async function getSubscriptionStatus(userId: string) {
 				status: subscriptions.status,
 				currency: subscriptions.currency,
 				currentPeriodEnd: subscriptions.currentPeriodEnd,
+				cancelAtPeriodEnd: subscriptions.cancelAtPeriodEnd,
 			})
 			.from(subscriptions)
 			.where(
@@ -91,13 +92,16 @@ export async function getSubscriptionStatus(userId: string) {
 	const isPremium = activeSub.length > 0;
 	const limit = isPremium ? PLAN_LIMITS.premium : PLAN_LIMITS.free;
 	const usedToday = todayUsage[0]?.count ?? 0;
+	const sub = activeSub[0] ?? null;
 
 	return {
 		plan: isPremium ? ("premium" as const) : ("free" as const),
 		usedToday,
 		limit,
 		remaining: Math.max(0, limit - usedToday),
-		subscription: activeSub[0] ?? null,
+		subscription: sub,
+		cancelAtPeriodEnd: sub?.cancelAtPeriodEnd ?? false,
+		currentPeriodEnd: sub?.currentPeriodEnd ?? null,
 	};
 }
 
@@ -135,6 +139,7 @@ export async function upsertSubscription(
 			productId: sub.productId,
 			currency: sub.currency,
 			currentPeriodEnd: sub.currentPeriodEnd,
+			cancelAtPeriodEnd: sub.cancelAtPeriodEnd ?? false,
 		})
 		.onConflictDoUpdate({
 			target: subscriptions.id,
@@ -142,9 +147,64 @@ export async function upsertSubscription(
 				status: sub.status,
 				productId: sub.productId,
 				currentPeriodEnd: sub.currentPeriodEnd,
+				cancelAtPeriodEnd: sub.cancelAtPeriodEnd ?? false,
 				updatedAt: new Date(),
 			},
 		});
+}
+
+export async function cancelSubscription(userId: string) {
+	const [sub] = await db
+		.select({
+			id: subscriptions.id,
+			cancelAtPeriodEnd: subscriptions.cancelAtPeriodEnd,
+		})
+		.from(subscriptions)
+		.where(
+			and(eq(subscriptions.userId, userId), eq(subscriptions.status, "active")),
+		)
+		.limit(1);
+
+	if (!sub) {
+		throw new TRPCError({
+			code: "NOT_FOUND",
+			message: "No active subscription to cancel",
+		});
+	}
+
+	if (sub.cancelAtPeriodEnd) {
+		return { success: true, alreadyCancelled: true };
+	}
+
+	const polar = new Polar({
+		accessToken: env.POLAR_ACCESS_TOKEN,
+		server: env.POLAR_ENV,
+	});
+
+	try {
+		await polar.subscriptions.update({
+			id: sub.id,
+			subscriptionUpdate: { cancelAtPeriodEnd: true },
+		});
+	} catch (error) {
+		const message = error instanceof Error ? error.message : String(error);
+		const isAlreadyCancelled = message.includes("AlreadyCanceledSubscription");
+
+		if (!isAlreadyCancelled) {
+			console.error("[subscription] cancel failed", { error: message });
+			throw new TRPCError({
+				code: "INTERNAL_SERVER_ERROR",
+				message: "Failed to cancel subscription",
+			});
+		}
+	}
+
+	await db
+		.update(subscriptions)
+		.set({ cancelAtPeriodEnd: true, updatedAt: new Date() })
+		.where(eq(subscriptions.id, sub.id));
+
+	return { success: true, alreadyCancelled: false };
 }
 
 export async function createCheckout(userEmail: string) {

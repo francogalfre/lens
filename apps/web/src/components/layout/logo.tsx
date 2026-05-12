@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import lensLogo from "@/assets/lens.svg";
+
 export function Logo() {
 	return (
 		<Link
@@ -9,11 +11,12 @@ export function Logo() {
 			aria-label="Lens — Home"
 		>
 			<Image
-				src="/lens-white.png"
+				src={lensLogo}
 				alt="Lens"
 				width={22}
 				height={22}
-				className="shrink-0"
+				priority
+				className="shrink-0 dark:invert"
 			/>
 			<span className="font-semibold text-foreground text-sm tracking-tight">
 				Lens

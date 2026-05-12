@@ -8,6 +8,7 @@
 		"start": "next start"
 	},
 	"dependencies": {
+		"@heroicons/react": "^2.2.0",
 		"@lens/api": "workspace:*",
 		"@lens/auth": "workspace:*",
 		"@lens/env": "workspace:*",

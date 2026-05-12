@@ -1,12 +1,24 @@
 {
 	"extends": "@lens/config/tsconfig.base.json",
 	"compilerOptions": {
-		"composite": true,
 		"outDir": "dist",
+		"rootDir": "../../",
 		"jsx": "react-jsx",
 		"jsxImportSource": "hono/jsx",
+		"baseUrl": ".",
+		"ignoreDeprecations": "6.0",
+		"skipLibCheck": true,
 		"paths": {
-			"@/*": ["./src/*"]
+			"@/*": ["./src/*", "../../packages/ai/src/*", "../../packages/api/src/*"],
+			"@lens/ai": ["../../packages/ai/src/index.ts"],
+			"@lens/api": ["../../packages/api/src/index.ts"],
+			"@lens/auth": ["../../packages/auth/src/index.ts"],
+			"@lens/db": ["../../packages/db/src/index.ts"],
+			"@lens/env/*": ["../../packages/env/src/*"],
+			"@lens/ai/*": ["../../packages/ai/src/*"],
+			"@lens/api/*": ["../../packages/api/src/*"],
+			"@lens/auth/*": ["../../packages/auth/src/*"],
+			"@lens/db/*": ["../../packages/db/src/*"]
 		}
 	}
 }
