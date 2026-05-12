@@ -34,21 +34,12 @@ export const metadata: Metadata = {
 		description:
 			"Analyze your business ideas with AI. Discover hidden opportunities and market insights.",
 		siteName: "Lens",
-		images: [
-			{
-				url: "/og-image.png",
-				width: 1200,
-				height: 630,
-				alt: "Lens - AI Idea Analysis",
-			},
-		],
 	},
 	twitter: {
 		card: "summary_large_image",
 		title: "Lens — AI-powered idea analysis",
 		description:
 			"Analyze your business ideas with AI. Discover hidden opportunities and market insights.",
-		images: ["/og-image.png"],
 	},
 	robots: {
 		index: true,

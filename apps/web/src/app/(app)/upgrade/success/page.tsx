@@ -1,14 +1,29 @@
 "use client";
 
 import { CheckIcon, SparklesIcon } from "@heroicons/react/24/outline";
+import { Loader } from "@lens/ui/components/loading-breadcrumb";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 
 import { authClient } from "@/lib/auth-client";
 
 export default function UpgradeSuccessPage() {
+	return (
+		<Suspense
+			fallback={
+				<div className="flex min-h-[60vh] items-center justify-center">
+					<Loader size={32} strokeWidth={2.5} className="text-foreground/60" />
+				</div>
+			}
+		>
+			<SuccessContent />
+		</Suspense>
+	);
+}
+
+function SuccessContent() {
 	const searchParams = useSearchParams();
 	const checkoutId = searchParams.get("checkout_id") ?? "";
 	const { data: session } = authClient.useSession();

@@ -15,6 +15,8 @@ export const env = createEnv({
 		POLAR_WEBHOOK_SECRET: z.string().min(1),
 		POLAR_PRODUCT_ID: z.string().min(1),
 		POLAR_ENV: z.enum(["sandbox", "production"]).default("production"),
+		OPENROUTER_API_KEY: z.string().min(1),
+		OPENROUTER_MODEL: z.string().min(1).default("openai/gpt-oss-120b:free"),
 	},
 	runtimeEnv: process.env,
 	emptyStringAsUndefined: true,

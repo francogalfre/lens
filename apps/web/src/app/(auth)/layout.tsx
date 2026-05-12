@@ -2,10 +2,11 @@
 
 import { ChevronLeftIcon } from "@heroicons/react/24/outline";
 import { FloatingPaths } from "@lens/ui/components/floating-paths";
+import { Loader } from "@lens/ui/components/loading-breadcrumb";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Suspense, useEffect } from "react";
 
 import lensLogo from "@/assets/lens.svg";
 import { authClient } from "@/lib/auth-client";
@@ -23,14 +24,13 @@ export default function AuthLayout({
 }) {
 	const { data: session, isPending } = authClient.useSession();
 	const router = useRouter();
-	const searchParams = useSearchParams();
-	const callbackUrl = isSafeCallback(searchParams.get("callbackUrl"));
 
 	useEffect(() => {
-		if (!isPending && session) {
-			router.replace(callbackUrl as never);
-		}
-	}, [session, isPending, router, callbackUrl]);
+		if (isPending || !session) return;
+		const params = new URLSearchParams(window.location.search);
+		const callbackUrl = isSafeCallback(params.get("callbackUrl"));
+		router.replace(callbackUrl as never);
+	}, [session, isPending, router]);
 
 	if (isPending || session) return null;
 
@@ -91,7 +91,19 @@ export default function AuthLayout({
 								Lens
 							</span>
 						</div>
-						{children}
+						<Suspense
+							fallback={
+								<div className="flex justify-center py-10">
+									<Loader
+										size={28}
+										strokeWidth={2.5}
+										className="text-foreground/60"
+									/>
+								</div>
+							}
+						>
+							{children}
+						</Suspense>
 					</div>
 				</section>
 			</main>

@@ -1,5 +1,8 @@
 import { createLogger, toRunConfig } from "@lens/ai";
-import { checkAndIncrementUsage } from "@lens/api/services/subscription";
+import {
+	checkAndIncrementUsage,
+	decrementUsage,
+} from "@lens/api/services/subscription";
 import { auth } from "@lens/auth";
 import type { Context as HonoContext } from "hono";
 import { stream } from "hono/streaming";
@@ -40,11 +43,17 @@ async function streamAnalysis(
 				await writer.writeln(JSON.stringify(event));
 			};
 
-			await runAnalysisStream(userId, rawIdea, send);
+			try {
+				await runAnalysisStream(userId, rawIdea, send);
+			} catch (err) {
+				await decrementUsage(userId).catch(() => undefined);
+				throw err;
+			}
 		},
 
 		async (error, writer) => {
 			logger.error("Streaming failed", { error });
+			await decrementUsage(userId).catch(() => undefined);
 
 			await writer.writeln(
 				JSON.stringify({

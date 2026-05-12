@@ -42,7 +42,7 @@ export function createAuth() {
 				use: [
 					checkout({
 						products: [{ productId: env.POLAR_PRODUCT_ID, slug: "premium" }],
-						successUrl: `${env.CORS_ORIGIN}/dashboard?upgraded=true`,
+						successUrl: `${env.CORS_ORIGIN}/upgrade/success?checkout_id={CHECKOUT_ID}`,
 						authenticatedUsersOnly: true,
 					}),
 					portal(),

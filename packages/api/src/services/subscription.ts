@@ -8,7 +8,7 @@ import { TRPCError } from "@trpc/server";
 import { and, eq } from "drizzle-orm";
 
 import { PLAN_LIMITS } from "@/config";
-import type { SubscriptionEvent } from "@/types/webhook";
+import { subscriptionEventSchema } from "@/types/webhook";
 
 export type UsageCheckResult = {
 	allowed: boolean;
@@ -61,6 +61,23 @@ export async function checkAndIncrementUsage(
 	});
 }
 
+export async function decrementUsage(userId: string): Promise<void> {
+	const date = new Date().toISOString().slice(0, 10);
+	await db.transaction(async (tx) => {
+		const [current] = await tx
+			.select({ count: dailyUsage.count })
+			.from(dailyUsage)
+			.where(and(eq(dailyUsage.userId, userId), eq(dailyUsage.date, date)))
+			.for("update");
+		const c = current?.count ?? 0;
+		if (c <= 0) return;
+		await tx
+			.update(dailyUsage)
+			.set({ count: c - 1 })
+			.where(and(eq(dailyUsage.userId, userId), eq(dailyUsage.date, date)));
+	});
+}
+
 export async function getSubscriptionStatus(userId: string) {
 	const date = new Date().toISOString().slice(0, 10);
 
@@ -105,10 +122,18 @@ export async function getSubscriptionStatus(userId: string) {
 	};
 }
 
-export async function upsertSubscription(
-	payload: SubscriptionEvent,
-): Promise<void> {
-	const { data: sub } = payload;
+export async function upsertSubscription(payload: unknown): Promise<void> {
+	const parsed = subscriptionEventSchema.safeParse(payload);
+	if (!parsed.success) {
+		console.warn("[subscription] webhook payload failed validation", {
+			error: parsed.error.message,
+		});
+		throw new TRPCError({
+			code: "BAD_REQUEST",
+			message: "Invalid webhook payload",
+		});
+	}
+	const { data: sub } = parsed.data;
 	const { customer } = sub;
 
 	let userId: string | null = customer.externalId ?? null;
