@@ -672,8 +672,8 @@ export function AgentAccordion({ agents }: { agents: AgentState[] }) {
 	const doneCount = agents.filter((a) => a.status === "complete").length;
 
 	return (
-		<div className="space-y-0.5">
-			<div className="mb-3 flex items-center justify-between px-3">
+		<div className="space-y-3">
+			<div className="mb-2 flex items-center justify-between px-3">
 				<span className="font-mono text-[11px] text-muted-foreground/50 uppercase tracking-widest">
 					Agents
 				</span>

@@ -2,12 +2,14 @@
 
 import { CheckIcon, SparklesIcon } from "@heroicons/react/24/outline";
 import { Loader } from "@lens/ui/components/loading-breadcrumb";
+import { useQueryClient } from "@tanstack/react-query";
 import { motion } from "motion/react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 
 import { authClient } from "@/lib/auth-client";
+import { trpc } from "@/lib/trpc";
 
 export default function UpgradeSuccessPage() {
 	return (
@@ -27,7 +29,16 @@ function SuccessContent() {
 	const searchParams = useSearchParams();
 	const checkoutId = searchParams.get("checkout_id") ?? "";
 	const { data: session } = authClient.useSession();
+	const queryClient = useQueryClient();
+	const router = useRouter();
 	const [showConfetti, setShowConfetti] = useState(false);
+
+	useEffect(() => {
+		queryClient.invalidateQueries({
+			queryKey: trpc.subscription.getStatus.queryKey(),
+		});
+		router.refresh();
+	}, [queryClient, router]);
 
 	useEffect(() => {
 		const t = setTimeout(() => setShowConfetti(true), 120);

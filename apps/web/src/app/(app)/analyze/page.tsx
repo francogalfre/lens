@@ -14,7 +14,6 @@ import { useEffect, useRef, useState } from "react";
 import { useAnalysis } from "@/hooks/use-analysis";
 import { authClient } from "@/lib/auth-client";
 import { AgentAccordion } from "./components/agent-accordion";
-import { AgentStepList } from "./components/agent-step-list";
 
 const RUNNING_LABEL: Record<string, string> = {
 	parser_agent: "Reading",
@@ -95,10 +94,12 @@ export default function AnalyzePage() {
 					New idea
 				</Link>
 
-				{isRunning && <LoadingBreadcrumb text={breadcrumbText} />}
+				{isRunning && !limitReached && (
+					<LoadingBreadcrumb text={breadcrumbText} />
+				)}
 			</motion.div>
 
-			{currentIdea && (
+			{currentIdea && !limitReached && (
 				<motion.div
 					initial={{ opacity: 0, y: 8 }}
 					animate={{ opacity: 1, y: 0 }}
@@ -112,35 +113,12 @@ export default function AnalyzePage() {
 				</motion.div>
 			)}
 
-			{(isRunning || isComplete) && (
-				<motion.section
-					initial={{ opacity: 0, y: 8 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.5, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
-					aria-label="Plan"
-					className="mb-6 rounded-2xl border border-border bg-card/40 px-5 py-4"
-				>
-					<p className="mb-3 text-[11px] text-foreground/45 uppercase tracking-wider">
-						Plan
-					</p>
-					<AgentStepList agents={agents} />
-				</motion.section>
-			)}
-
-			<motion.div
-				initial={{ opacity: 0, y: 8 }}
-				animate={{ opacity: 1, y: 0 }}
-				transition={{ duration: 0.5, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
-				className="rounded-2xl border border-border bg-card/40 p-3 sm:p-4"
-			>
-				<AgentAccordion agents={agents} />
-			</motion.div>
-
-			{limitReached && (
+			{limitReached ? (
 				<motion.div
 					initial={{ opacity: 0, y: 12 }}
 					animate={{ opacity: 1, y: 0 }}
-					className="mt-6 rounded-2xl border border-amber-500/20 bg-amber-500/[0.04] px-5 py-4"
+					transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+					className="rounded-2xl border border-amber-500/20 bg-amber-500/[0.04] px-5 py-5"
 				>
 					<p className="font-medium text-foreground text-sm">
 						Daily limit reached
@@ -156,6 +134,15 @@ export default function AnalyzePage() {
 						Upgrade to Premium · 3/day
 					</Link>
 				</motion.div>
+			) : (
+				<motion.div
+					initial={{ opacity: 0, y: 8 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+					className="rounded-2xl border border-border bg-card/40 p-4 sm:p-5"
+				>
+					<AgentAccordion agents={agents} />
+				</motion.div>
 			)}
 
 			{errorMsg && !limitReached && (
@@ -168,7 +155,7 @@ export default function AnalyzePage() {
 				</motion.div>
 			)}
 
-			{isComplete && (
+			{isComplete && !limitReached && (
 				<motion.div
 					initial={{ opacity: 0, y: 12 }}
 					animate={{ opacity: 1, y: 0 }}

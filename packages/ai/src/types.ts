@@ -52,7 +52,13 @@ export const FeasibilityResultSchema = z.object({
 });
 
 export const SynthesisResultSchema = z.object({
-	overallScore: z.number().int().min(1).max(10),
+	scores: z.object({
+		market: z.number().min(1).max(10),
+		differentiation: z.number().min(1).max(10),
+		feasibility: z.number().min(1).max(10),
+		risk: z.number().min(1).max(10),
+	}),
+	overallScore: z.number().min(1).max(10),
 	verdict: z.string(),
 	topRecommendations: z.array(z.string()),
 	summary: z.string(),

@@ -2,6 +2,7 @@
 
 import {
 	ArrowPathIcon,
+	ExclamationTriangleIcon,
 	EyeIcon,
 	EyeSlashIcon,
 } from "@heroicons/react/24/outline";
@@ -9,11 +10,10 @@ import { Input } from "@lens/ui/components/input";
 import { Label } from "@lens/ui/components/label";
 import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
-import { motion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { toast } from "sonner";
 import { z } from "zod";
 
 import { trpc } from "@/lib/trpc";
@@ -30,19 +30,32 @@ function safeCallback(path: string | null): string {
 	return path;
 }
 
+function humanizeError(message: string): string {
+	const m = message.toLowerCase();
+	if (m.includes("user_already_exists") || m.includes("already exists"))
+		return "An account with this email already exists. Try signing in instead.";
+	if (m.includes("password") && m.includes("short"))
+		return "That password is too short. Use 8 or more characters.";
+	if (m.includes("invalid") && m.includes("email"))
+		return "That email address doesn't look right.";
+	return message;
+}
+
 export default function RegisterPage() {
 	const searchParams = useSearchParams();
 	const callbackUrl = safeCallback(searchParams.get("callbackUrl"));
 	const [showPassword, setShowPassword] = useState(false);
+	const [serverError, setServerError] = useState<string | null>(null);
 
 	const mutation = useMutation(
 		trpc.auth.signUp.mutationOptions({
 			onSuccess: () => {
-				toast.success("Account created!");
+				setServerError(null);
 				window.location.href = callbackUrl;
 			},
 			onError: (error: unknown) => {
-				toast.error(error instanceof Error ? error.message : "Sign up failed");
+				const raw = error instanceof Error ? error.message : "Sign up failed";
+				setServerError(humanizeError(raw));
 			},
 		}),
 	);
@@ -51,6 +64,7 @@ export default function RegisterPage() {
 		defaultValues: { name: "", email: "", password: "" },
 		validators: { onSubmit: schema },
 		onSubmit: ({ value }) => {
+			setServerError(null);
 			mutation.mutate(value);
 		},
 	});
@@ -69,6 +83,25 @@ export default function RegisterPage() {
 					Start putting your ideas under the lens.
 				</p>
 			</div>
+
+			<AnimatePresence>
+				{serverError && (
+					<motion.div
+						key={serverError}
+						initial={{ opacity: 0, y: -4 }}
+						animate={{ opacity: 1, y: 0 }}
+						exit={{ opacity: 0, y: -4 }}
+						transition={{ duration: 0.2 }}
+						role="alert"
+						className="mb-4 flex items-start gap-2.5 rounded-xl border border-destructive/30 bg-destructive/[0.06] px-3.5 py-2.5"
+					>
+						<ExclamationTriangleIcon className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
+						<p className="text-destructive text-sm leading-snug">
+							{serverError}
+						</p>
+					</motion.div>
+				)}
+			</AnimatePresence>
 
 			<form
 				onSubmit={(e) => {

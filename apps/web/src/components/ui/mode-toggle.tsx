@@ -12,7 +12,7 @@ export function ModeToggle() {
 	useEffect(() => setMounted(true), []);
 
 	const current = (theme === "system" ? resolvedTheme : theme) ?? "light";
-	const isDark = current === "dark";
+	const isDark = mounted && current === "dark";
 
 	const toggle = () => setTheme(isDark ? "light" : "dark");
 
@@ -20,7 +20,14 @@ export function ModeToggle() {
 		<button
 			type="button"
 			onClick={toggle}
-			aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
+			suppressHydrationWarning
+			aria-label={
+				mounted
+					? isDark
+						? "Switch to light theme"
+						: "Switch to dark theme"
+					: "Toggle theme"
+			}
 			className="relative inline-flex h-8 w-8 items-center justify-center rounded-full text-foreground/70 transition-colors hover:bg-foreground/[0.06] hover:text-foreground"
 		>
 			<AnimatePresence mode="wait" initial={false}>

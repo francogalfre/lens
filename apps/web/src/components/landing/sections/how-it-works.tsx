@@ -112,14 +112,13 @@ export function HowItWorks() {
 					whileInView={{ opacity: 1, y: 0 }}
 					viewport={{ once: true, margin: "-10% 0px" }}
 					transition={{ duration: 0.8, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-					className="mb-6"
 				>
 					<AgentPipeline />
 				</motion.div>
 
-				<div className="grid grid-cols-1 gap-3 md:grid-cols-12">
+				<div className="mt-8 grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2 lg:grid-cols-3">
 					{AGENTS.map((agent, i) => (
-						<BentoCard key={agent.num} agent={agent} index={i} />
+						<AgentRow key={agent.num} agent={agent} index={i} />
 					))}
 				</div>
 			</Container>
@@ -127,37 +126,35 @@ export function HowItWorks() {
 	);
 }
 
-function BentoCard({
+function AgentRow({
 	agent,
 	index,
 }: {
 	agent: (typeof AGENTS)[number];
 	index: number;
 }) {
-	const { num, label, Icon, title, body, span } = agent;
+	const { num, label, Icon, title, body } = agent;
 	return (
 		<motion.div
-			initial={{ opacity: 0, y: 20 }}
+			initial={{ opacity: 0, y: 16 }}
 			whileInView={{ opacity: 1, y: 0 }}
 			viewport={{ once: true, margin: "-10% 0px" }}
 			transition={{
-				duration: 0.6,
-				delay: 0.05 * index,
+				duration: 0.55,
+				delay: 0.04 * index,
 				ease: [0.22, 1, 0.36, 1],
 			}}
-			className={`group relative col-span-1 overflow-hidden rounded-2xl border border-border bg-card/40 p-6 transition-all duration-500 hover:border-foreground/20 hover:bg-card/70 sm:p-7 ${span}`}
+			className="group flex flex-col gap-2.5"
 		>
-			<div className="mb-8 flex items-start justify-between">
-				<div className="flex items-center gap-2.5">
-					<span className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary text-foreground/70 transition-colors duration-500 group-hover:bg-foreground group-hover:text-background">
-						<Icon className="h-4 w-4" strokeWidth={2} />
-					</span>
-					<span className="text-foreground/55 text-xs">{label}</span>
-				</div>
-				<span className="text-foreground/30 text-xs tabular-nums">{num}</span>
+			<div className="flex items-center gap-2.5">
+				<span className="flex h-8 w-8 items-center justify-center rounded-lg bg-foreground/[0.05] text-foreground/75 transition-colors duration-300 group-hover:bg-foreground group-hover:text-background">
+					<Icon className="h-4 w-4" strokeWidth={2} />
+				</span>
+				<span className="font-mono text-[10px] text-foreground/35 uppercase tracking-wider">
+					{num} · {label}
+				</span>
 			</div>
-
-			<h3 className="mb-2 font-medium text-foreground text-lg leading-tight tracking-tight">
+			<h3 className="font-medium text-base text-foreground leading-tight tracking-tight">
 				{title}
 			</h3>
 			<p className="text-balance text-foreground/55 text-sm leading-relaxed">

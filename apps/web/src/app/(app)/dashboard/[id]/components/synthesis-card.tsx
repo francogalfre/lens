@@ -4,6 +4,12 @@ import { CheckIcon } from "@heroicons/react/24/outline";
 
 interface SynthesisData {
 	overallScore: number;
+	scores?: {
+		market: number;
+		differentiation: number;
+		feasibility: number;
+		risk: number;
+	};
 	verdict: string;
 	topRecommendations: string[];
 	summary: string;
@@ -12,8 +18,12 @@ interface SynthesisData {
 const cap = (s?: string): string | undefined =>
 	s ? s.charAt(0).toUpperCase() + s.slice(1) : undefined;
 
+const fmtScore = (n: number) =>
+	Number.isInteger(n) ? String(n) : n.toFixed(1);
+
 export function SynthesisCard({ synthesis }: { synthesis: SynthesisData }) {
 	const score = synthesis.overallScore;
+	const sub = synthesis.scores;
 
 	return (
 		<div className="overflow-hidden rounded-3xl border border-border bg-card/50 shadow-[0_24px_80px_-32px_rgba(0,0,0,0.18)] dark:shadow-[0_24px_80px_-32px_rgba(0,0,0,0.6)]">
@@ -24,10 +34,38 @@ export function SynthesisCard({ synthesis }: { synthesis: SynthesisData }) {
 					</span>
 					<div className="mt-2 flex items-baseline gap-2">
 						<span className="font-medium text-6xl text-foreground tabular-nums leading-none tracking-tight">
-							{score}
+							{fmtScore(score)}
 						</span>
 						<span className="text-foreground/40 text-sm">/ 10</span>
 					</div>
+
+					{sub ? (
+						<div className="mt-5 grid grid-cols-4 gap-3">
+							{(
+								[
+									["Market", sub.market],
+									["Edge", sub.differentiation],
+									["Build", sub.feasibility],
+									["Risk", sub.risk],
+								] as const
+							).map(([label, value]) => (
+								<div key={label} className="flex flex-col gap-1">
+									<span className="text-[10px] text-foreground/45 uppercase tracking-wider">
+										{label}
+									</span>
+									<span className="font-medium text-foreground text-sm tabular-nums">
+										{fmtScore(value)}
+									</span>
+									<span className="h-1 w-full overflow-hidden rounded-full bg-foreground/[0.06]">
+										<span
+											className="block h-full rounded-full bg-foreground/60"
+											style={{ width: `${(value / 10) * 100}%` }}
+										/>
+									</span>
+								</div>
+							))}
+						</div>
+					) : null}
 
 					<div className="mt-6">
 						<span className="text-[11px] text-foreground/45">Verdict</span>
