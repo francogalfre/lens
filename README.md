@@ -93,6 +93,23 @@ lens/
 │   └── db/          # Database schema & queries
 ```
 
+## Deploying the Web app to Vercel
+
+The repo ships with `vercel.json` wiring monorepo + Turbo. On Vercel:
+
+1. **Import the repo** and set **Root Directory** = `apps/web`.
+2. Vercel will pick up the `vercel.json` (build command runs `turbo build --filter=web` from the monorepo root with a frozen-lockfile install).
+3. Add these environment variables to the Vercel project (Production):
+   - `DATABASE_URL`
+   - `BETTER_AUTH_SECRET` (32+ chars)
+   - `BETTER_AUTH_URL` (e.g. `https://api.your-domain.com` — pointing to the Hono server)
+   - `CORS_ORIGIN` (e.g. `https://your-domain.com` — the web origin)
+   - `NEXT_PUBLIC_SERVER_URL` (same as `BETTER_AUTH_URL`)
+   - `POLAR_ACCESS_TOKEN`, `POLAR_WEBHOOK_SECRET`, `POLAR_PRODUCT_ID`, `POLAR_ENV`
+   - `OPENROUTER_API_KEY`, `OPENROUTER_MODEL`
+4. The Hono server (`apps/server`) is **not** Vercel-deployable as-is — host it separately (Fly, Railway, etc.) and point `NEXT_PUBLIC_SERVER_URL` / `BETTER_AUTH_URL` at it.
+5. Polar checkout `successUrl` is wired to `/upgrade/success?checkout_id={CHECKOUT_ID}` — no extra Vercel config needed.
+
 ## Available Scripts
 
 - `bun run dev`: Start all applications in development mode
