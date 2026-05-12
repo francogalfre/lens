@@ -1,9 +1,20 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { ChevronLeftIcon } from "@heroicons/react/24/outline";
+import { FloatingPaths } from "@lens/ui/components/floating-paths";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 
+import lensLogo from "@/assets/lens.svg";
 import { authClient } from "@/lib/auth-client";
+
+function isSafeCallback(path: string | null): string {
+	if (!path) return "/";
+	if (!path.startsWith("/") || path.startsWith("//")) return "/";
+	return path;
+}
 
 export default function AuthLayout({
 	children,
@@ -12,33 +23,78 @@ export default function AuthLayout({
 }) {
 	const { data: session, isPending } = authClient.useSession();
 	const router = useRouter();
+	const searchParams = useSearchParams();
+	const callbackUrl = isSafeCallback(searchParams.get("callbackUrl"));
 
 	useEffect(() => {
 		if (!isPending && session) {
-			router.replace("/");
+			router.replace(callbackUrl as never);
 		}
-	}, [session, isPending, router]);
+	}, [session, isPending, router, callbackUrl]);
 
 	if (isPending || session) return null;
 
 	return (
 		<div className="fixed inset-0 z-[100] overflow-auto bg-background">
-			<div
-				aria-hidden
-				className="mask-[radial-gradient(ellipse_at_center,black,transparent_70%)] pointer-events-none absolute inset-0 opacity-[0.04] dark:opacity-[0.06]"
-				style={{
-					backgroundImage:
-						"linear-gradient(to right, currentColor 1px, transparent 1px), linear-gradient(to bottom, currentColor 1px, transparent 1px)",
-					backgroundSize: "44px 44px",
-				}}
-			/>
-			<div
-				aria-hidden
-				className="pointer-events-none absolute top-0 left-1/2 h-64 w-[640px] -translate-x-1/2 rounded-full bg-foreground/[0.04] blur-3xl"
-			/>
-			<div className="relative flex min-h-full items-center justify-center px-4 py-16">
-				{children}
-			</div>
+			<main className="relative min-h-full lg:grid lg:grid-cols-2">
+				<aside className="relative hidden h-screen flex-col overflow-hidden border-border/60 border-r bg-muted/40 p-10 lg:flex">
+					<div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+					<FloatingPaths position={1} />
+					<FloatingPaths position={-1} />
+
+					<div className="relative z-10 flex items-center gap-2.5">
+						<Image
+							src={lensLogo}
+							alt="Lens"
+							width={26}
+							height={26}
+							priority
+							className="dark:invert"
+						/>
+						<span className="font-semibold text-foreground text-lg tracking-tight">
+							Lens
+						</span>
+					</div>
+
+					<div className="relative z-10 mt-auto max-w-sm">
+						<p className="text-balance font-medium text-2xl text-foreground leading-tight tracking-tight">
+							Put your ideas under the lens — before you put them on the
+							roadmap.
+						</p>
+						<p className="mt-3 text-foreground/55 text-sm">
+							Six expert agents stress-test feasibility, market fit, risk and
+							edge in under a minute.
+						</p>
+					</div>
+				</aside>
+
+				<section className="relative flex min-h-screen flex-col justify-center px-4 py-16 sm:px-6">
+					<Link
+						href="/"
+						className="absolute top-6 left-5 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-foreground/55 text-xs transition-colors hover:bg-foreground/[0.04] hover:text-foreground"
+					>
+						<ChevronLeftIcon className="h-3.5 w-3.5" />
+						Home
+					</Link>
+
+					<div className="mx-auto w-full max-w-sm">
+						<div className="mb-8 flex items-center gap-2.5 lg:hidden">
+							<Image
+								src={lensLogo}
+								alt="Lens"
+								width={24}
+								height={24}
+								priority
+								className="dark:invert"
+							/>
+							<span className="font-semibold text-base text-foreground tracking-tight">
+								Lens
+							</span>
+						</div>
+						{children}
+					</div>
+				</section>
+			</main>
 		</div>
 	);
 }

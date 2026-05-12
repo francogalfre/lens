@@ -6,7 +6,9 @@ import {
 	MapIcon,
 	Square3Stack3DIcon,
 } from "@heroicons/react/24/outline";
-import { motion } from "motion/react";
+import { TextScramble } from "@lens/ui/components/text-scramble";
+import { motion, useInView } from "motion/react";
+import { useRef } from "react";
 
 import { Container } from "@/components/layout/container";
 
@@ -34,21 +36,40 @@ const REASONS = [
 ];
 
 export function WhyLens() {
+	const headRef = useRef<HTMLDivElement>(null);
+	const inView = useInView(headRef, { once: true, margin: "-15% 0px" });
+
 	return (
 		<section className="relative w-full py-24">
 			<Container>
 				<motion.div
+					ref={headRef}
 					initial={{ opacity: 0, y: 24 }}
 					whileInView={{ opacity: 1, y: 0 }}
 					viewport={{ once: true, margin: "-15% 0px" }}
 					transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
 					className="mb-14 flex flex-col items-start gap-4 sm:items-center sm:text-center"
 				>
-					<h2 className="font-medium text-4xl text-foreground leading-[1.1] tracking-tight sm:text-5xl">
-						Built for the moment
-						<br />
-						<span className="text-foreground/45">before the build.</span>
-					</h2>
+					<div className="font-medium text-4xl text-foreground leading-[1.1] tracking-tight sm:text-5xl">
+						<TextScramble
+							as="span"
+							trigger={inView}
+							duration={1}
+							speed={0.04}
+							className="block"
+						>
+							Built for the moment
+						</TextScramble>
+						<TextScramble
+							as="span"
+							trigger={inView}
+							duration={1.1}
+							speed={0.04}
+							className="block text-foreground/45"
+						>
+							before the build.
+						</TextScramble>
+					</div>
 				</motion.div>
 
 				<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">

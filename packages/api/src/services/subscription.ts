@@ -217,7 +217,7 @@ export async function createCheckout(userEmail: string) {
 		const checkout = await polar.checkouts.create({
 			products: [env.POLAR_PRODUCT_ID],
 			customerEmail: userEmail,
-			successUrl: `${env.CORS_ORIGIN}/dashboard?upgraded=true`,
+			successUrl: `${env.CORS_ORIGIN}/upgrade/success?checkout_id={CHECKOUT_ID}`,
 		});
 
 		return { checkoutUrl: checkout.url };

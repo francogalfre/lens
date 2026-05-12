@@ -10,14 +10,12 @@ import { Label } from "@lens/ui/components/label";
 import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
 import { motion } from "motion/react";
-import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 
-import lensLogo from "@/assets/lens.svg";
 import { trpc } from "@/lib/trpc";
 
 const schema = z.object({
@@ -26,9 +24,15 @@ const schema = z.object({
 	password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
+function safeCallback(path: string | null): string {
+	if (!path) return "/";
+	if (!path.startsWith("/") || path.startsWith("//")) return "/";
+	return path;
+}
+
 export default function RegisterPage() {
 	const searchParams = useSearchParams();
-	const callbackUrl = searchParams.get("callbackUrl") ?? "/";
+	const callbackUrl = safeCallback(searchParams.get("callbackUrl"));
 	const [showPassword, setShowPassword] = useState(false);
 
 	const mutation = useMutation(
@@ -56,24 +60,7 @@ export default function RegisterPage() {
 			initial={{ opacity: 0, y: 12 }}
 			animate={{ opacity: 1, y: 0 }}
 			transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-			className="w-full max-w-sm"
 		>
-			<Link
-				href="/"
-				className="mb-10 inline-flex items-center gap-2.5 transition-opacity hover:opacity-75"
-			>
-				<Image
-					src={lensLogo}
-					alt="Lens"
-					width={22}
-					height={22}
-					className="dark:invert"
-				/>
-				<span className="font-semibold text-foreground text-sm tracking-tight">
-					Lens
-				</span>
-			</Link>
-
 			<div className="mb-8">
 				<h1 className="font-medium text-3xl text-foreground leading-tight tracking-tight">
 					Create account

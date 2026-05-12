@@ -1,8 +1,9 @@
 "use client";
 
 import { PlusIcon } from "@heroicons/react/24/outline";
-import { motion } from "motion/react";
-import { useState } from "react";
+import { TextScramble } from "@lens/ui/components/text-scramble";
+import { motion, useInView } from "motion/react";
+import { useRef, useState } from "react";
 
 import { Container } from "@/components/layout/container";
 
@@ -30,21 +31,40 @@ const QUESTIONS = [
 ];
 
 export function FAQ() {
+	const headRef = useRef<HTMLDivElement>(null);
+	const inView = useInView(headRef, { once: true, margin: "-15% 0px" });
+
 	return (
 		<section className="w-full py-24">
 			<Container>
 				<motion.div
+					ref={headRef}
 					initial={{ opacity: 0, y: 24 }}
 					whileInView={{ opacity: 1, y: 0 }}
 					viewport={{ once: true, margin: "-15% 0px" }}
 					transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
 					className="mb-12 flex flex-col items-start gap-3 sm:items-center sm:text-center"
 				>
-					<h2 className="font-medium text-4xl text-foreground leading-[1.1] tracking-tight sm:text-5xl">
-						Questions,
-						<br />
-						<span className="text-foreground/45">answered.</span>
-					</h2>
+					<div className="font-medium text-4xl text-foreground leading-[1.1] tracking-tight sm:text-5xl">
+						<TextScramble
+							as="span"
+							trigger={inView}
+							duration={1}
+							speed={0.04}
+							className="block"
+						>
+							Questions,
+						</TextScramble>
+						<TextScramble
+							as="span"
+							trigger={inView}
+							duration={1.1}
+							speed={0.04}
+							className="block text-foreground/45"
+						>
+							answered.
+						</TextScramble>
+					</div>
 				</motion.div>
 
 				<div className="space-y-2">

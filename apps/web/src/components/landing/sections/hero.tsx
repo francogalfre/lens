@@ -75,7 +75,7 @@ export function Hero({ onSubmit, isRunning, isPendingAuth }: HeroProps) {
 								as="h1"
 								duration={1.2}
 								speed={0.045}
-								className="block min-w-3xl text-5xl sm:text-6xl"
+								className="block text-balance text-4xl sm:text-5xl md:text-6xl"
 							>
 								See what others don't
 							</TextScramble>

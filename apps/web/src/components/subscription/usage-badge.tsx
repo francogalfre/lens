@@ -1,5 +1,6 @@
 "use client";
 
+import { SparklesIcon } from "@heroicons/react/24/outline";
 import {
 	useMutation,
 	useQueryClient,
@@ -61,46 +62,75 @@ function Badge() {
 	);
 
 	const showCancelled = plan === "premium" && cancelAtPeriodEnd;
+	const ariaUsage = `${usedToday} of ${limit} analyses used today`;
+
+	if (plan === "free") {
+		return (
+			<Link
+				href="/upgrade"
+				aria-label={`${ariaUsage}. Upgrade to Premium`}
+				className="group inline-flex items-center gap-1.5 rounded-full border border-border bg-card/60 px-1 py-1 pr-3 text-xs transition-all hover:bg-card hover:shadow-sm"
+			>
+				<span
+					aria-hidden
+					className={`flex h-6 items-center justify-center rounded-full px-2 font-mono tabular-nums ${
+						isFull
+							? "bg-destructive/10 text-destructive"
+							: "bg-foreground/[0.05] text-foreground/70"
+					}`}
+				>
+					{usedToday}/{limit}
+				</span>
+				<span className="flex items-center gap-1 font-medium text-foreground/80 transition-colors group-hover:text-foreground">
+					<SparklesIcon className="h-3 w-3" />
+					Upgrade
+				</span>
+			</Link>
+		);
+	}
 
 	return (
-		<div className="flex items-center gap-2">
-			<span
-				className={`font-mono text-xs tabular-nums ${isFull ? "text-destructive" : "text-muted-foreground"}`}
+		<>
+			<div
+				aria-label={ariaUsage}
+				role="status"
+				className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card/60 px-1 py-1 pr-2.5 text-xs"
 			>
-				{usedToday}/{limit}
-			</span>
-			{plan === "free" && (
-				<Link
-					href="/upgrade"
-					className="rounded-full bg-primary/10 px-2.5 py-0.5 text-primary text-xs transition-colors hover:bg-primary/20"
+				<span
+					aria-hidden
+					className={`flex h-6 items-center justify-center rounded-full px-2 font-mono tabular-nums ${
+						isFull
+							? "bg-destructive/10 text-destructive"
+							: "bg-foreground/[0.05] text-foreground/70"
+					}`}
 				>
-					Upgrade
-				</Link>
-			)}
-			{plan === "premium" && !showCancelled && (
-				<>
+					{usedToday}/{limit}
+				</span>
+				{showCancelled ? (
+					<span className="flex items-center gap-1 font-medium text-amber-600 dark:text-amber-400">
+						Ends {formatEndDate(currentPeriodEnd)}
+					</span>
+				) : (
 					<button
 						type="button"
 						onClick={() => setConfirmOpen(true)}
 						disabled={cancel.isPending}
-						className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-emerald-600 text-xs transition-colors hover:bg-destructive/10 hover:text-destructive disabled:opacity-60 dark:text-emerald-400"
+						className="group/btn flex items-center gap-1 font-medium text-foreground/80 transition-colors hover:text-foreground disabled:opacity-60"
+						aria-label="Cancel premium plan"
 					>
-						{cancel.isPending ? "Cancelling…" : "Premium"}
+						<SparklesIcon className="h-3 w-3" />
+						<span className="group-hover/btn:hidden">Premium</span>
+						<span className="hidden group-hover/btn:inline">Cancel</span>
 					</button>
-					<CancelPlanDialog
-						open={confirmOpen}
-						onOpenChange={setConfirmOpen}
-						onConfirm={() => cancel.mutate()}
-						isPending={cancel.isPending}
-					/>
-				</>
-			)}
-			{showCancelled && (
-				<span className="rounded-full bg-amber-500/10 px-2.5 py-0.5 text-amber-600 text-xs dark:text-amber-400">
-					Ends {formatEndDate(currentPeriodEnd)}
-				</span>
-			)}
-		</div>
+				)}
+			</div>
+			<CancelPlanDialog
+				open={confirmOpen}
+				onOpenChange={setConfirmOpen}
+				onConfirm={() => cancel.mutate()}
+				isPending={cancel.isPending}
+			/>
+		</>
 	);
 }
 
@@ -111,7 +141,9 @@ function AuthenticatedBadge() {
 
 	return (
 		<Suspense
-			fallback={<div className="h-5 w-16 animate-pulse rounded bg-muted" />}
+			fallback={
+				<div className="h-7 w-20 animate-pulse rounded-full bg-muted" />
+			}
 		>
 			<Badge />
 		</Suspense>

@@ -71,6 +71,7 @@ export function TextScramble({
 		}, speed * 1000);
 	};
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: scramble is re-created every render; only trigger should re-run the effect
 	useEffect(() => {
 		if (!trigger) return;
 
