@@ -17,41 +17,46 @@ interface HeroProps {
 
 export function Hero({ onSubmit, isRunning, isPendingAuth }: HeroProps) {
 	return (
-		<section className="relative flex min-h-[min(680px,calc(100svh-2rem))] flex-col items-center justify-center pt-24 pb-16 sm:pt-28 sm:pb-20">
+		<section className="relative flex min-h-[90vh] flex-col items-center justify-center pt-16 pb-16 sm:pt-20 sm:pb-20">
 			<div
 				aria-hidden
-				className="mask-[radial-gradient(ellipse_at_center,black,transparent_70%)] pointer-events-none absolute inset-0 -z-10 opacity-[0.04] dark:opacity-[0.06]"
+				className="pointer-events-none absolute inset-0 -z-10 opacity-[0.04] dark:opacity-[0.06]"
 				style={{
 					backgroundImage:
 						"linear-gradient(to right, currentColor 1px, transparent 1px), linear-gradient(to bottom, currentColor 1px, transparent 1px)",
 					backgroundSize: "44px 44px",
+					maskImage:
+						"radial-gradient(ellipse 70% 50% at 50% 50%, black 0%, black 20%, transparent 100%)",
+					WebkitMaskImage:
+						"radial-gradient(ellipse 70% 50% at 50% 50%, black 0%, black 20%, transparent 100%)",
 				}}
 			/>
 
 			<Container>
-				<div className="mx-auto flex w-full min-w-0 max-w-2xl flex-col items-center gap-5">
+				<div className="mx-auto flex w-full min-w-0 max-w-2xl flex-col items-center gap-5 sm:gap-6">
 					<motion.div
 						initial={{ opacity: 0, scale: 0.94 }}
 						animate={{ opacity: 1, scale: 1 }}
 						transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-						className="relative size-20"
+						className="relative size-24 sm:size-28"
 					>
 						<motion.div
-							animate={{ y: [-4, -10, -4] }}
+							animate={{ y: [-3, -8, -3] }}
 							transition={{
 								duration: 4,
 								repeat: Number.POSITIVE_INFINITY,
 								ease: "easeInOut",
 								type: "tween",
 							}}
-							className="relative size-20"
+							className="relative size-28 sm:size-32"
 						>
 							<Image
 								src={lensLogo}
 								alt="Lens"
 								fill
 								priority
-								sizes="80px"
+								sizes="128px"
+								loading="eager"
 								className="block select-none object-contain dark:brightness-0 dark:invert"
 							/>
 						</motion.div>
@@ -69,19 +74,19 @@ export function Hero({ onSubmit, isRunning, isPendingAuth }: HeroProps) {
 					>
 						<div
 							aria-hidden
-							className="flex flex-col items-center font-medium text-foreground leading-[1.05] tracking-tight"
+							className="flex w-full flex-col items-center font-medium text-foreground leading-[1.05] tracking-tight"
 						>
 							<TextScramble
 								as="h1"
 								duration={1.2}
 								speed={0.045}
-								className="block text-balance text-4xl sm:text-5xl"
+								className="block max-w-xl text-balance text-4xl sm:text-5xl lg:text-6xl"
 							>
 								See what others don't
 							</TextScramble>
 						</div>
 
-						<p className="w-full max-w-2xl text-balance text-base text-foreground/55 leading-relaxed">
+						<p className="w-full max-w-xl text-balance text-base text-foreground/55 leading-relaxed">
 							Six agents inspect your idea from every angle. Market, risk,
 							feasibility, opportunity — a verdict in seconds.
 						</p>

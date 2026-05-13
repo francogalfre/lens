@@ -76,7 +76,7 @@ export function AgentPipeline() {
 	return (
 		<div
 			ref={containerRef}
-			className="relative w-full overflow-hidden rounded-3xl border border-border bg-card/60 px-6 py-12 sm:px-12 sm:py-16"
+			className="relative w-full overflow-hidden rounded-2xl border border-border bg-card/60 px-6 py-8 sm:px-10 sm:py-12"
 		>
 			<div
 				aria-hidden
@@ -88,17 +88,14 @@ export function AgentPipeline() {
 				}}
 			/>
 
-			<div className="pointer-events-none absolute top-1/2 left-1/2 h-[380px] w-[760px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-foreground/[0.04] blur-3xl" />
+			<div className="pointer-events-none absolute top-1/2 left-1/2 hidden h-[280px] w-[560px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-foreground/4 blur-3xl lg:block" />
 
-			<div className="relative mx-auto grid max-w-5xl grid-cols-1 items-center gap-6 lg:grid-cols-[minmax(220px,1fr)_60px_minmax(260px,1.2fr)_60px_minmax(220px,1fr)]">
-				{/* Stage 1: Parser */}
+			{/* Mobile vertical layout */}
+			<div className="flex flex-col gap-4 lg:hidden">
 				<div className="flex w-full">
 					<NodeCard node={NODES[0]} state={parserState} />
 				</div>
-
-				<Connector active={step >= 1} />
-
-				{/* Stage 2: 4 parallel agents stacked */}
+				<VerticalConnector active={step >= 1} />
 				<div className="flex w-full flex-col gap-2">
 					{NODES.slice(1, 5).map((n, i) => (
 						<NodeCard
@@ -110,22 +107,52 @@ export function AgentPipeline() {
 						/>
 					))}
 				</div>
-
-				<Connector active={step >= 2} />
-
-				{/* Stage 3: Synthesis */}
+				<VerticalConnector active={step >= 2} />
 				<div className="flex w-full">
 					<NodeCard node={NODES[5]} state={synthState} />
 				</div>
+				<div className="mt-2 flex items-center justify-center gap-4">
+					<MobileStageLabel text="Parse" active={step >= 0} />
+					<MobileStageLabel text="Analyze" active={step >= 1} />
+					<MobileStageLabel text="Synthesize" active={step >= 2} />
+				</div>
 			</div>
 
-			{/* Stage labels */}
-			<div className="relative mx-auto mt-10 grid max-w-5xl grid-cols-1 gap-6 lg:grid-cols-[minmax(220px,1fr)_60px_minmax(260px,1.2fr)_60px_minmax(220px,1fr)]">
-				<StageLabel index={1} text="Parse" active={step >= 0} />
-				<span />
-				<StageLabel index={2} text="Analyze in parallel" active={step >= 1} />
-				<span />
-				<StageLabel index={3} text="Synthesize" active={step >= 2} />
+			{/* Desktop horizontal layout */}
+			<div className="hidden lg:block">
+				<div className="relative mx-auto grid w-full grid-cols-1 items-center gap-6 lg:grid-cols-[minmax(180px,1fr)_50px_minmax(200px,1fr)_50px_minmax(180px,1fr)]">
+					<div className="flex w-full">
+						<NodeCard node={NODES[0]} state={parserState} />
+					</div>
+
+					<Connector active={step >= 1} />
+
+					<div className="flex w-full flex-col gap-2">
+						{NODES.slice(1, 5).map((n, i) => (
+							<NodeCard
+								key={n.id}
+								node={n}
+								state={parallelState}
+								compact
+								delay={i * 0.08}
+							/>
+						))}
+					</div>
+
+					<Connector active={step >= 2} />
+
+					<div className="flex w-full">
+						<NodeCard node={NODES[5]} state={synthState} />
+					</div>
+				</div>
+
+				<div className="relative mx-auto mt-6 grid w-full grid-cols-1 gap-4 lg:grid-cols-[minmax(180px,1fr)_50px_minmax(200px,1fr)_50px_minmax(180px,1fr)]">
+					<StageLabel index={1} text="Parse" active={step >= 0} />
+					<span />
+					<StageLabel index={2} text="Analyze" active={step >= 1} />
+					<span />
+					<StageLabel index={3} text="Synthesize" active={step >= 2} />
+				</div>
 			</div>
 		</div>
 	);
@@ -178,8 +205,8 @@ function NodeCard({
 				scale: state === "active" ? 1.02 : 1,
 			}}
 			transition={{ duration: 0.5, delay, ease: [0.22, 1, 0.36, 1] }}
-			className={`relative flex w-full items-center gap-3 overflow-hidden rounded-2xl border bg-card/85 backdrop-blur-sm transition-colors duration-500 ${
-				compact ? "px-3 py-2.5" : "px-4 py-4"
+			className={`relative flex w-full items-center gap-2.5 overflow-hidden rounded-xl border bg-card/85 backdrop-blur-sm transition-colors duration-500 ${
+				compact ? "px-3 py-2" : "px-3.5 py-3"
 			} ${
 				state === "active"
 					? "border-foreground/35 shadow-[0_0_0_4px_color-mix(in_oklch,var(--foreground)_4%,transparent)]"
@@ -212,12 +239,12 @@ function NodeCard({
 								: "color-mix(in oklch, var(--foreground) 50%, transparent)",
 				}}
 				transition={{ duration: 0.4 }}
-				className={`flex shrink-0 items-center justify-center rounded-xl ${
-					compact ? "h-8 w-8" : "h-10 w-10"
+				className={`flex shrink-0 items-center justify-center rounded-lg ${
+					compact ? "h-7 w-7" : "h-9 w-9"
 				}`}
 			>
 				<Icon
-					className={compact ? "h-4 w-4" : "h-[18px] w-[18px]"}
+					className={compact ? "h-3.5 w-3.5" : "h-4.5 w-4.5"}
 					strokeWidth={2}
 				/>
 			</motion.div>
@@ -225,7 +252,7 @@ function NodeCard({
 			<div className="min-w-0 flex-1">
 				<div className="flex items-center gap-2">
 					<span
-						className={`whitespace-nowrap font-medium ${compact ? "text-sm" : "text-[15px]"} ${
+						className={`whitespace-nowrap font-medium text-sm ${
 							state === "idle" ? "text-foreground/55" : "text-foreground"
 						}`}
 					>
@@ -260,11 +287,7 @@ function NodeCard({
 						)}
 					</div>
 				</div>
-				<p
-					className={`mt-0.5 truncate text-foreground/50 leading-snug ${
-						compact ? "text-[11.5px]" : "text-xs"
-					}`}
-				>
+				<p className="mt-0.5 truncate text-foreground/50 text-xs leading-snug">
 					{desc}
 				</p>
 			</div>
@@ -336,5 +359,66 @@ function Connector({ active }: { active: boolean }) {
 				)}
 			</svg>
 		</div>
+	);
+}
+
+function VerticalConnector({ active }: { active: boolean }) {
+	return (
+		<div className="flex items-center justify-center py-1">
+			<svg
+				className="h-6 w-full max-w-[60px]"
+				viewBox="0 0 12 24"
+				preserveAspectRatio="xMidYMid meet"
+				fill="none"
+				role="img"
+				aria-label="Flow connection"
+			>
+				<motion.path
+					d="M 6 0 L 6 20"
+					stroke="currentColor"
+					strokeWidth="0.6"
+					strokeDasharray="2 2"
+					className="text-foreground/15"
+					initial={{ pathLength: 0 }}
+					animate={{ pathLength: 1 }}
+					transition={{ duration: 0.5 }}
+				/>
+				<motion.path
+					d="M 6 0 L 6 20"
+					stroke="currentColor"
+					strokeWidth="0.75"
+					className="text-foreground/70"
+					initial={{ pathLength: 0, opacity: 0 }}
+					animate={{
+						pathLength: active ? 1 : 0,
+						opacity: active ? 1 : 0,
+					}}
+					transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+				/>
+				<motion.path
+					d="M 3 17 L 6 20 L 9 17"
+					stroke="currentColor"
+					strokeWidth="0.75"
+					strokeLinecap="round"
+					strokeLinejoin="round"
+					className="text-foreground/70"
+					initial={{ opacity: 0.25 }}
+					animate={{ opacity: active ? 1 : 0.25 }}
+					transition={{ duration: 0.3, delay: active ? 0.3 : 0 }}
+				/>
+			</svg>
+		</div>
+	);
+}
+
+function MobileStageLabel({ text, active }: { text: string; active: boolean }) {
+	return (
+		<span
+			className={`text-[10px] tabular-nums transition-colors duration-500 ${
+				active ? "text-foreground" : "text-muted-foreground/60"
+			}`}
+		>
+			{text}
+		</span>
 	);
 }

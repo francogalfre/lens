@@ -1,5 +1,6 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import {
@@ -10,6 +11,7 @@ import {
 	type SynthesisResult,
 } from "@/hooks/analysis.types";
 import { authClient } from "@/lib/auth-client";
+import { trpc } from "@/lib/trpc";
 
 interface UseAnalysisReturn {
 	status: Status;
@@ -30,6 +32,7 @@ export function useAnalysis(): UseAnalysisReturn {
 	const [errorMsg, setErrorMsg] = useState<string | null>(null);
 	const [limitReached, setLimitReached] = useState(false);
 
+	const queryClient = useQueryClient();
 	const router = useRouter();
 	const { data: session, isPending: isSessionPending } =
 		authClient.useSession();
@@ -166,6 +169,13 @@ export function useAnalysis(): UseAnalysisReturn {
 				}
 
 				setStatus("complete");
+
+				queryClient.invalidateQueries({
+					queryKey: trpc.dashboard.listAnalyses.queryKey(),
+				});
+				queryClient.invalidateQueries({
+					queryKey: trpc.subscription.getStatus.queryKey(),
+				});
 			} catch (err) {
 				setErrorMsg(
 					err instanceof Error ? err.message : "Something went wrong",
@@ -173,7 +183,7 @@ export function useAnalysis(): UseAnalysisReturn {
 				setStatus("error");
 			}
 		},
-		[status, session, isSessionPending, router, handleEvent],
+		[status, session, isSessionPending, router, handleEvent, queryClient],
 	);
 
 	const reset = useCallback(() => {

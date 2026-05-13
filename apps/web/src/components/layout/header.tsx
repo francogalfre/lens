@@ -21,7 +21,7 @@ export function Header() {
 			<motion.header
 				initial={false}
 				animate={{
-					maxWidth: scrolled ? 720 : 1280,
+					maxWidth: scrolled ? 720 : 1000,
 					borderRadius: scrolled ? 999 : 18,
 				}}
 				transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}

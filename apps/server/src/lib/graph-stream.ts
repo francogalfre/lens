@@ -61,7 +61,13 @@ export async function runAnalysisStream(
 
 	await send({ type: "complete" });
 
-	if (result.parsedIdea && result.synthesis) {
-		await saveAnalysis({ userId, rawIdea, ...result });
+	if (result.parsedIdea) {
+		await saveAnalysis({
+			userId,
+			rawIdea,
+			parsedIdea: result.parsedIdea,
+			synthesis: result.synthesis ?? null,
+			agentData: result.agentData,
+		});
 	}
 }

@@ -5,7 +5,6 @@ import {
 	ArrowPathIcon,
 	Squares2X2Icon,
 } from "@heroicons/react/24/outline";
-import { LoadingBreadcrumb } from "@lens/ui/components/loading-breadcrumb";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -14,15 +13,6 @@ import { useEffect, useRef, useState } from "react";
 import { useAnalysis } from "@/hooks/use-analysis";
 import { authClient } from "@/lib/auth-client";
 import { AgentAccordion } from "./components/agent-accordion";
-
-const RUNNING_LABEL: Record<string, string> = {
-	parser_agent: "Reading",
-	researcher_agent: "Researching",
-	critic_agent: "Critiquing",
-	opportunity_agent: "Mapping",
-	feasibility_agent: "Sizing",
-	synthesis_agent: "Synthesizing",
-};
 
 export default function AnalyzePage() {
 	const router = useRouter();
@@ -73,11 +63,6 @@ export default function AnalyzePage() {
 		router.push("/");
 	};
 
-	const runningAgent = agents.find((a) => a.status === "running");
-	const breadcrumbText = runningAgent
-		? (RUNNING_LABEL[runningAgent.name] ?? "Working")
-		: "Working";
-
 	return (
 		<div className="mx-auto w-full max-w-2xl flex-1 px-6 py-12">
 			<motion.div
@@ -93,10 +78,6 @@ export default function AnalyzePage() {
 					<ArrowLeftIcon className="h-3.5 w-3.5" />
 					New idea
 				</Link>
-
-				{isRunning && !limitReached && (
-					<LoadingBreadcrumb text={breadcrumbText} />
-				)}
 			</motion.div>
 
 			{currentIdea && !limitReached && (
@@ -139,7 +120,7 @@ export default function AnalyzePage() {
 					initial={{ opacity: 0, y: 8 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-					className="rounded-2xl border border-border bg-card/40 p-4 sm:p-5"
+					className="rounded-2xl border border-border bg-card/40 p-5 sm:p-6"
 				>
 					<AgentAccordion agents={agents} />
 				</motion.div>

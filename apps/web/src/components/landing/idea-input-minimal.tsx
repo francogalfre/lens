@@ -69,9 +69,9 @@ export function IdeaInputMinimal({
 					value={idea}
 					onChange={(e) => setIdea(e.target.value)}
 					placeholder="Describe an idea, a product, a problem worth solving…"
-					rows={4}
+					rows={6}
 					disabled={isRunning || isPendingAuth}
-					className="resize-none border-0 bg-transparent px-5 pt-5 pb-2 text-[15px] text-foreground shadow-none placeholder:text-foreground/35 focus-visible:ring-0 focus-visible:ring-offset-0"
+					className="w-full resize-none border-0 bg-transparent px-5 pt-5 pb-3 text-base text-foreground shadow-none placeholder:text-foreground/35 focus-visible:ring-0 focus-visible:ring-offset-0"
 					onKeyDown={(e) => {
 						if (e.key === "Enter" && !e.shiftKey) {
 							e.preventDefault();

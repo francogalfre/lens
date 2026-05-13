@@ -2,13 +2,13 @@
 
 import { ChevronLeftIcon } from "@heroicons/react/24/outline";
 import { FloatingPaths } from "@lens/ui/components/floating-paths";
-import { Loader } from "@lens/ui/components/loading-breadcrumb";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Suspense, useEffect } from "react";
 
 import lensLogo from "@/assets/lens.svg";
+import Loader from "@/components/ui/loader";
 import { authClient } from "@/lib/auth-client";
 
 function isSafeCallback(path: string | null): string {

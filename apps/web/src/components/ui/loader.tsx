@@ -1,9 +1,20 @@
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
 
-export default function Loader() {
+interface LoaderProps {
+	size?: number;
+	strokeWidth?: number;
+	className?: string;
+}
+
+export default function Loader({
+	size = 24,
+	strokeWidth = 2,
+	className = "",
+}: LoaderProps) {
 	return (
-		<div className="flex h-full items-center justify-center pt-8">
-			<ArrowPathIcon className="animate-spin" />
-		</div>
+		<ArrowPathIcon
+			className={`animate-spin ${className}`}
+			style={{ width: size, height: size, strokeWidth }}
+		/>
 	);
 }

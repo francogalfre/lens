@@ -111,17 +111,14 @@ function Badge() {
 						Ends {formatEndDate(currentPeriodEnd)}
 					</span>
 				) : (
-					<button
-						type="button"
-						onClick={() => setConfirmOpen(true)}
-						disabled={cancel.isPending}
-						className="group/btn flex items-center gap-1 font-medium text-foreground/80 transition-colors hover:text-foreground disabled:opacity-60"
-						aria-label="Cancel premium plan"
+					<Link
+						href="/upgrade"
+						className="flex items-center gap-1 font-medium text-foreground/80 transition-colors hover:text-foreground"
+						aria-label="Manage premium plan"
 					>
 						<SparklesIcon className="h-3 w-3" />
-						<span className="group-hover/btn:hidden">Premium</span>
-						<span className="hidden group-hover/btn:inline">Cancel</span>
-					</button>
+						Premium
+					</Link>
 				)}
 			</div>
 			<CancelPlanDialog

@@ -134,9 +134,13 @@ export async function upsertSubscription(payload: unknown): Promise<void> {
 		});
 	}
 	const { data: sub } = parsed.data;
-	const { customer } = sub;
+	const { customer, metadata } = sub;
 
 	let userId: string | null = customer.externalId ?? null;
+
+	if (!userId && metadata && "userId" in metadata) {
+		userId = metadata.userId as string;
+	}
 
 	if (!userId && customer.email) {
 		const rows = await db
@@ -150,9 +154,17 @@ export async function upsertSubscription(payload: unknown): Promise<void> {
 	if (!userId) {
 		console.warn("[subscription] webhook received but no matching user found", {
 			subscriptionId: sub.id,
+			metadata,
+			customerExternalId: customer.externalId,
 		});
 		return;
 	}
+
+	console.log("[subscription] processing webhook", {
+		subscriptionId: sub.id,
+		status: sub.status,
+		userId,
+	});
 
 	await db
 		.insert(subscriptions)
@@ -232,7 +244,7 @@ export async function cancelSubscription(userId: string) {
 	return { success: true, alreadyCancelled: false };
 }
 
-export async function createCheckout(userEmail: string) {
+export async function createCheckout(userId: string, userEmail: string) {
 	const polar = new Polar({
 		accessToken: env.POLAR_ACCESS_TOKEN,
 		server: env.POLAR_ENV,
@@ -242,6 +254,9 @@ export async function createCheckout(userEmail: string) {
 		const checkout = await polar.checkouts.create({
 			products: [env.POLAR_PRODUCT_ID],
 			customerEmail: userEmail,
+			metadata: {
+				userId,
+			},
 			successUrl: `${env.CORS_ORIGIN}/upgrade/success?checkout_id={CHECKOUT_ID}`,
 		});
 

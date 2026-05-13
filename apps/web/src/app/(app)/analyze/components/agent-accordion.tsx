@@ -153,36 +153,18 @@ function Label({ children }: { children: React.ReactNode }) {
 	);
 }
 
-function Field({
-	label,
-	value,
-	animate,
-}: {
-	label: string;
-	value?: string;
-	animate: boolean;
-}) {
+function Field({ label, value }: { label: string; value?: string }) {
 	if (!value) return null;
 	const text = cap(value) ?? "";
 	return (
 		<div className="space-y-0.5">
 			<Label>{label}</Label>
-			<p className="text-foreground/80 text-sm leading-relaxed">
-				<TypewriterText text={text} animate={animate} />
-			</p>
+			<p className="text-foreground/80 text-sm leading-relaxed">{text}</p>
 		</div>
 	);
 }
 
-function BulletList({
-	label,
-	items,
-	animate,
-}: {
-	label: string;
-	items: string[];
-	animate: boolean;
-}) {
+function BulletList({ label, items }: { label: string; items: string[] }) {
 	return (
 		<div className="space-y-1.5">
 			<Label>{label}</Label>
@@ -193,7 +175,7 @@ function BulletList({
 						className="flex gap-2.5 text-foreground/80 text-sm leading-relaxed"
 					>
 						<span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-muted-foreground/50" />
-						<TypewriterText text={cap(item) ?? ""} animate={animate} />
+						<span>{cap(item) ?? ""}</span>
 					</li>
 				))}
 			</ul>
@@ -218,7 +200,7 @@ function AgentContent({
 			return (
 				<BlurFade duration={0.3}>
 					<p className="text-muted-foreground text-sm">
-						<TypewriterText text={payload.validationError} animate={animate} />
+						{payload.validationError}
 					</p>
 				</BlurFade>
 			);
@@ -228,16 +210,12 @@ function AgentContent({
 		return (
 			<BlurFade duration={0.3}>
 				<div className="space-y-3">
-					<Field label="Problem" value={idea.problem} animate={animate} />
-					<Field label="Solution" value={idea.solution} animate={animate} />
-					<Field
-						label="Target audience"
-						value={idea.targetAudience}
-						animate={animate}
-					/>
+					<Field label="Problem" value={idea.problem} />
+					<Field label="Solution" value={idea.solution} />
+					<Field label="Target audience" value={idea.targetAudience} />
 					<div className="flex gap-8">
-						<Field label="Domain" value={idea.techDomain} animate={animate} />
-						<Field label="Category" value={idea.category} animate={animate} />
+						<Field label="Domain" value={idea.techDomain} />
+						<Field label="Category" value={idea.category} />
 					</div>
 				</div>
 			</BlurFade>
@@ -263,10 +241,7 @@ function AgentContent({
 									<div key={c.name} className="space-y-0.5">
 										<div className="flex items-center gap-2">
 											<span className="font-medium text-sm">
-												<TypewriterText
-													text={cap(c.name) ?? ""}
-													animate={animate}
-												/>
+												{cap(c.name) ?? ""}
 											</span>
 											{c.url && (
 												<a
@@ -280,10 +255,7 @@ function AgentContent({
 											)}
 										</div>
 										<span className="text-muted-foreground text-xs leading-relaxed">
-											<TypewriterText
-												text={cap(c.description) ?? ""}
-												animate={animate}
-											/>
+											{cap(c.description) ?? ""}
 										</span>
 									</div>
 								))}
@@ -297,7 +269,6 @@ function AgentContent({
 								r.marketContext.slice(0, 300) +
 								(r.marketContext.length > 300 ? "…" : "")
 							}
-							animate={animate}
 						/>
 					)}
 				</div>
@@ -318,20 +289,13 @@ function AgentContent({
 			<BlurFade duration={0.3}>
 				<div className="space-y-4">
 					{c.weaknesses && (
-						<BulletList
-							label="Weaknesses"
-							items={c.weaknesses}
-							animate={animate}
-						/>
+						<BulletList label="Weaknesses" items={c.weaknesses} />
 					)}
-					{c.risks && (
-						<BulletList label="Risks" items={c.risks} animate={animate} />
-					)}
+					{c.risks && <BulletList label="Risks" items={c.risks} />}
 					{c.deadlyAssumptions && (
 						<BulletList
 							label="Critical assumptions"
 							items={c.deadlyAssumptions}
-							animate={animate}
 						/>
 					)}
 				</div>
@@ -351,26 +315,12 @@ function AgentContent({
 		return (
 			<BlurFade duration={0.3}>
 				<div className="space-y-4">
-					{o.strengths && (
-						<BulletList
-							label="Strengths"
-							items={o.strengths}
-							animate={animate}
-						/>
-					)}
+					{o.strengths && <BulletList label="Strengths" items={o.strengths} />}
 					{o.opportunities && (
-						<BulletList
-							label="Opportunities"
-							items={o.opportunities}
-							animate={animate}
-						/>
+						<BulletList label="Opportunities" items={o.opportunities} />
 					)}
 					{o.differentiators && (
-						<BulletList
-							label="Differentiators"
-							items={o.differentiators}
-							animate={animate}
-						/>
+						<BulletList label="Differentiators" items={o.differentiators} />
 					)}
 				</div>
 			</BlurFade>
@@ -391,19 +341,9 @@ function AgentContent({
 			<BlurFade duration={0.3}>
 				<div className="space-y-4">
 					<div className="flex gap-8">
-						{f.complexity && (
-							<Field
-								label="Complexity"
-								value={f.complexity}
-								animate={animate}
-							/>
-						)}
+						{f.complexity && <Field label="Complexity" value={f.complexity} />}
 						{f.estimatedTimeline && (
-							<Field
-								label="Timeline"
-								value={f.estimatedTimeline}
-								animate={animate}
-							/>
+							<Field label="Timeline" value={f.estimatedTimeline} />
 						)}
 					</div>
 					{f.techStack && f.techStack.length > 0 && (
@@ -422,11 +362,7 @@ function AgentContent({
 						</div>
 					)}
 					{f.mainChallenges && (
-						<BulletList
-							label="Main challenges"
-							items={f.mainChallenges}
-							animate={animate}
-						/>
+						<BulletList label="Main challenges" items={f.mainChallenges} />
 					)}
 				</div>
 			</BlurFade>
@@ -456,18 +392,10 @@ function AgentContent({
 							</span>
 						</div>
 					)}
-					{s.verdict && (
-						<Field label="Verdict" value={s.verdict} animate={animate} />
-					)}
-					{s.summary && (
-						<Field label="Summary" value={s.summary} animate={animate} />
-					)}
+					{s.verdict && <Field label="Verdict" value={s.verdict} />}
+					{s.summary && <Field label="Summary" value={s.summary} />}
 					{s.topRecommendations && s.topRecommendations.length > 0 && (
-						<BulletList
-							label="Recommendations"
-							items={s.topRecommendations}
-							animate={animate}
-						/>
+						<BulletList label="Recommendations" items={s.topRecommendations} />
 					)}
 				</div>
 			</BlurFade>
@@ -572,39 +500,49 @@ function AgentItem({ agent }: { agent: AgentState }) {
 	};
 
 	return (
-		<div>
+		<div className={isRunning ? "py-1" : ""}>
 			<button
 				type="button"
 				onClick={handleToggle}
-				className={`group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors ${
+				className={`group flex w-full items-center gap-4 rounded-xl px-4 py-3 text-left transition-colors ${
 					canExpand ? "cursor-pointer hover:bg-accent/50" : "cursor-default"
 				} ${isPending ? "opacity-35" : ""}`}
 				disabled={isPending}
 			>
 				{/* Status indicator */}
-				<span className="flex h-4 w-4 shrink-0 items-center justify-center">
+				<span className="flex h-5 w-5 shrink-0 items-center justify-center">
 					{isPending && (
-						<span className="h-1.5 w-1.5 rounded-full border border-muted-foreground/40" />
+						<span className="h-2 w-2 rounded-full border border-muted-foreground/40" />
 					)}
 					{isRunning && (
-						<span className="relative flex h-2 w-2">
+						<span className="relative flex h-3 w-3">
 							<span className="absolute inset-0 animate-ping rounded-full bg-foreground/50 opacity-75" />
-							<span className="h-2 w-2 rounded-full bg-foreground/90" />
+							<span className="h-3 w-3 rounded-full bg-foreground/90" />
 						</span>
 					)}
 					{isComplete && (
-						<CheckIcon className="h-3.5 w-3.5 text-muted-foreground/60" />
+						<CheckIcon className="h-4 w-4 text-muted-foreground/60" />
 					)}
 				</span>
 
-				{/* Icon */}
-				<Icon
-					className={`h-4 w-4 shrink-0 ${isPending ? "text-muted-foreground/40" : "text-muted-foreground"}`}
-				/>
-
-				{/* Label */}
+				{/* Icon with pulse animation when running */}
 				<span
-					className={`flex-1 text-sm ${isComplete ? "text-foreground/70" : isRunning ? "text-foreground" : "text-muted-foreground"}`}
+					className={`relative flex h-6 w-6 shrink-0 items-center justify-center rounded-lg ${
+						isRunning ? "animate-pulse bg-foreground/10" : ""
+					} ${isPending ? "text-muted-foreground/40" : "text-muted-foreground"}`}
+				>
+					<Icon className="h-4 w-4" />
+				</span>
+
+				{/* Label with pulse when running */}
+				<span
+					className={`flex-1 font-medium text-sm ${
+						isRunning
+							? "animate-pulse text-foreground"
+							: isComplete
+								? "text-foreground/70"
+								: "text-muted-foreground"
+					}`}
 				>
 					{label}
 				</span>
@@ -612,7 +550,7 @@ function AgentItem({ agent }: { agent: AgentState }) {
 				{/* Expand chevron */}
 				{canExpand && (
 					<ChevronRightIcon
-						className={`h-3.5 w-3.5 shrink-0 text-muted-foreground/40 transition-transform duration-200 ${
+						className={`h-4 w-4 shrink-0 text-muted-foreground/40 transition-transform duration-200 ${
 							expanded ? "rotate-90" : ""
 						}`}
 					/>
@@ -621,16 +559,16 @@ function AgentItem({ agent }: { agent: AgentState }) {
 
 			{/* Expanded content */}
 			{expanded && canExpand && (
-				<div className="ml-[2.75rem] pt-1 pr-3 pb-2">
+				<div className="ml-[3.5rem] pr-4 pb-4">
 					{isRunning && <RunningSteps steps={steps} isComplete={false} />}
 					{isComplete && (
-						<RunningStepsOrContent
-							agent={agent.name}
-							data={agent.data}
-							steps={steps}
-							animate={shouldAnimateContent}
-							hadRunningPhase={wasRunningWhenExpandedRef.current}
-						/>
+						<BlurFade delay={0.1} duration={0.4}>
+							<AgentContent
+								agent={agent.name}
+								data={agent.data}
+								animate={shouldAnimateContent}
+							/>
+						</BlurFade>
 					)}
 				</div>
 			)}
@@ -672,8 +610,8 @@ export function AgentAccordion({ agents }: { agents: AgentState[] }) {
 	const doneCount = agents.filter((a) => a.status === "complete").length;
 
 	return (
-		<div className="space-y-3">
-			<div className="mb-2 flex items-center justify-between px-3">
+		<div className="space-y-2">
+			<div className="mb-3 flex items-center justify-between px-4">
 				<span className="font-mono text-[11px] text-muted-foreground/50 uppercase tracking-widest">
 					Agents
 				</span>

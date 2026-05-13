@@ -11,7 +11,7 @@ export const subscriptionRouter = router({
 	}),
 
 	createCheckout: protectedProcedure.mutation(async ({ ctx }) => {
-		return createCheckout(ctx.session.user.email);
+		return createCheckout(ctx.session.user.id, ctx.session.user.email);
 	}),
 
 	cancel: protectedProcedure.mutation(async ({ ctx }) => {

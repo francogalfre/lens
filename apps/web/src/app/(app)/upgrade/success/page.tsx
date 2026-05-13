@@ -1,13 +1,13 @@
 "use client";
 
 import { CheckIcon, SparklesIcon } from "@heroicons/react/24/outline";
-import { Loader } from "@lens/ui/components/loading-breadcrumb";
 import { useQueryClient } from "@tanstack/react-query";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 
+import Loader from "@/components/ui/loader";
 import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/lib/trpc";
 
@@ -34,10 +34,18 @@ function SuccessContent() {
 	const [showConfetti, setShowConfetti] = useState(false);
 
 	useEffect(() => {
-		queryClient.invalidateQueries({
-			queryKey: trpc.subscription.getStatus.queryKey(),
-		});
-		router.refresh();
+		async function invalidateAndRefresh() {
+			await Promise.all([
+				queryClient.invalidateQueries({
+					queryKey: trpc.subscription.getStatus.queryKey(),
+				}),
+				queryClient.invalidateQueries({
+					queryKey: trpc.dashboard.listAnalyses.queryKey(),
+				}),
+			]);
+			router.refresh();
+		}
+		invalidateAndRefresh();
 	}, [queryClient, router]);
 
 	useEffect(() => {

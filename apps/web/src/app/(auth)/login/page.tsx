@@ -29,6 +29,14 @@ function safeCallback(path: string | null): string {
 	return path;
 }
 
+function formatZodError(err: unknown): string {
+	if (typeof err === "string") return err;
+	if (err && typeof err === "object" && "message" in err) {
+		return String((err as { message: unknown }).message);
+	}
+	return "Invalid input";
+}
+
 function humanizeError(message: string): string {
 	const m = message.toLowerCase();
 	if (
@@ -131,7 +139,7 @@ export default function LoginPage() {
 							/>
 							{field.state.meta.errors.map((err) => (
 								<p key={String(err)} className="text-destructive text-xs">
-									{String(err)}
+									{formatZodError(err)}
 								</p>
 							))}
 						</div>
@@ -174,7 +182,7 @@ export default function LoginPage() {
 							</div>
 							{field.state.meta.errors.map((err) => (
 								<p key={String(err)} className="text-destructive text-xs">
-									{String(err)}
+									{formatZodError(err)}
 								</p>
 							))}
 						</div>

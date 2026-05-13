@@ -13,6 +13,7 @@ export const subscriptionEventSchema = z.object({
 			email: z.string().email().nullish(),
 			externalId: z.string().nullish(),
 		}),
+		metadata: z.record(z.string(), z.string()).nullish(),
 	}),
 });
 

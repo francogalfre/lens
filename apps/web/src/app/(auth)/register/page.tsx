@@ -30,6 +30,14 @@ function safeCallback(path: string | null): string {
 	return path;
 }
 
+function formatZodError(err: unknown): string {
+	if (typeof err === "string") return err;
+	if (err && typeof err === "object" && "message" in err) {
+		return String((err as { message: unknown }).message);
+	}
+	return "Invalid input";
+}
+
 function humanizeError(message: string): string {
 	const m = message.toLowerCase();
 	if (m.includes("user_already_exists") || m.includes("already exists"))
@@ -129,7 +137,7 @@ export default function RegisterPage() {
 							/>
 							{field.state.meta.errors.map((err) => (
 								<p key={String(err)} className="text-destructive text-xs">
-									{String(err)}
+									{formatZodError(err)}
 								</p>
 							))}
 						</div>
@@ -154,7 +162,7 @@ export default function RegisterPage() {
 							/>
 							{field.state.meta.errors.map((err) => (
 								<p key={String(err)} className="text-destructive text-xs">
-									{String(err)}
+									{formatZodError(err)}
 								</p>
 							))}
 						</div>
@@ -197,7 +205,7 @@ export default function RegisterPage() {
 							</div>
 							{field.state.meta.errors.map((err) => (
 								<p key={String(err)} className="text-destructive text-xs">
-									{String(err)}
+									{formatZodError(err)}
 								</p>
 							))}
 						</div>
