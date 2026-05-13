@@ -1,20 +1,12 @@
 import type { RunnableConfig } from "@langchain/core/runnables";
 import { getWriter } from "@langchain/langgraph";
+
 import { runSynthesis } from "@/agents/synthesis/index";
 import type { State } from "@/graph";
 
 export const synthesisNode = async (state: State, config: RunnableConfig) => {
 	if (state.validationError) return {};
-
-	if (
-		!state.parsedIdea ||
-		!state.research ||
-		!state.critique ||
-		!state.opportunities ||
-		!state.feasibility
-	) {
-		return {};
-	}
+	if (!state.parsedIdea) return {};
 
 	getWriter()?.({ type: "nodeStart", agent: "synthesis_agent" });
 
@@ -22,10 +14,28 @@ export const synthesisNode = async (state: State, config: RunnableConfig) => {
 		synthesis: await runSynthesis(
 			{
 				parsedIdea: state.parsedIdea,
-				research: state.research,
-				critique: state.critique,
-				opportunities: state.opportunities,
-				feasibility: state.feasibility,
+				research: state.research ?? {
+					competitors: [],
+					marketContext: "",
+					searchQueries: [],
+					opportunities: [],
+				},
+				critique: state.critique ?? {
+					weaknesses: [],
+					risks: [],
+					deadlyAssumptions: [],
+				},
+				opportunities: state.opportunities ?? {
+					strengths: [],
+					opportunities: [],
+					differentiators: [],
+				},
+				feasibility: state.feasibility ?? {
+					complexity: "",
+					techStack: [],
+					mainChallenges: [],
+					estimatedTimeline: "",
+				},
 			},
 			config,
 		),

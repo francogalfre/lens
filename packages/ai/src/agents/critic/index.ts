@@ -1,15 +1,16 @@
 import type { RunnableConfig } from "@langchain/core/runnables";
 import { createAgent } from "langchain";
+
 import { CRITIC_PROMPT } from "@/agents/critic/prompt";
 import { type CritiqueResult, CritiqueResultSchema } from "@/types";
-import { createLoggingMiddleware } from "@/utils/middleware";
+import { createAgentMiddleware } from "@/utils/middleware";
 import { createModel } from "@/utils/model";
 
 export async function runCritic(
 	idea: string,
 	config?: RunnableConfig,
 ): Promise<CritiqueResult> {
-	const model = createModel(1200);
+	const model = createModel(700);
 
 	const criticAgent = createAgent({
 		name: "Critic Agent",
@@ -17,13 +18,11 @@ export async function runCritic(
 		systemPrompt: CRITIC_PROMPT,
 		responseFormat: CritiqueResultSchema,
 		tools: [],
-		middleware: [createLoggingMiddleware("Critic Agent")],
+		middleware: createAgentMiddleware("Critic Agent"),
 	});
 
 	const result = await criticAgent.invoke(
-		{
-			messages: [{ role: "user", content: idea }],
-		},
+		{ messages: [{ role: "user", content: idea }] },
 		config,
 	);
 

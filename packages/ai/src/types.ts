@@ -7,6 +7,7 @@ export const ParsedIdeaSchema = z.object({
 	techDomain: z.string(),
 	category: z.string(),
 	summary: z.string(),
+	language: z.string(),
 });
 
 export const ParserOutputSchema = z.object({
@@ -17,6 +18,7 @@ export const ParserOutputSchema = z.object({
 	techDomain: z.string().optional(),
 	category: z.string().optional(),
 	summary: z.string().optional(),
+	language: z.string().optional(),
 });
 
 export const ResearchResultSchema = z.object({
@@ -73,7 +75,7 @@ export type FeasibilityResult = z.infer<typeof FeasibilityResultSchema>;
 export type SynthesisResult = z.infer<typeof SynthesisResultSchema>;
 
 export type ParserResult =
-	| { validationError: string }
+	| { validationError: string; language: string }
 	| {
 			problem: string;
 			solution: string;
@@ -81,6 +83,7 @@ export type ParserResult =
 			techDomain: string;
 			category: string;
 			summary: string;
+			language: string;
 	  };
 
 export interface SynthesisInput {

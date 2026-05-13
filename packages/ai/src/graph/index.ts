@@ -10,7 +10,12 @@ import { AnalysisState } from "@/graph/state";
 
 export type State = typeof AnalysisState.State;
 
-const retryPolicy = { maxAttempts: 3, initialInterval: 1.0 };
+const retryPolicy = {
+	maxAttempts: 3,
+	initialInterval: 1.0,
+	backoffFactor: 2.0,
+	maxInterval: 5.0,
+};
 
 export const analysisGraph = new StateGraph(AnalysisState)
 	.addNode("parser_agent", parserNode, { retryPolicy })

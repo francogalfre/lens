@@ -1,15 +1,16 @@
 import type { RunnableConfig } from "@langchain/core/runnables";
 import { createAgent } from "langchain";
+
 import { OPPORTUNITY_PROMPT } from "@/agents/opportunity/prompt";
 import { type OpportunityResult, OpportunityResultSchema } from "@/types";
-import { createLoggingMiddleware } from "@/utils/middleware";
+import { createAgentMiddleware } from "@/utils/middleware";
 import { createModel } from "@/utils/model";
 
 export async function runOpportunity(
 	idea: string,
 	config?: RunnableConfig,
 ): Promise<OpportunityResult> {
-	const model = createModel(1200);
+	const model = createModel(700);
 
 	const opportunityAgent = createAgent({
 		name: "Opportunity Agent",
@@ -17,13 +18,11 @@ export async function runOpportunity(
 		systemPrompt: OPPORTUNITY_PROMPT,
 		responseFormat: OpportunityResultSchema,
 		tools: [],
-		middleware: [createLoggingMiddleware("Opportunity Agent")],
+		middleware: createAgentMiddleware("Opportunity Agent"),
 	});
 
 	const result = await opportunityAgent.invoke(
-		{
-			messages: [{ role: "user", content: idea }],
-		},
+		{ messages: [{ role: "user", content: idea }] },
 		config,
 	);
 

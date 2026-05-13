@@ -1,8 +1,9 @@
 import type { RunnableConfig } from "@langchain/core/runnables";
 import { createAgent } from "langchain";
+
 import { PARSER_PROMPT } from "@/agents/parser/prompt";
 import { ParserOutputSchema, type ParserResult } from "@/types";
-import { createLoggingMiddleware } from "@/utils/middleware";
+import { createAgentMiddleware } from "@/utils/middleware";
 import { createModel } from "@/utils/model";
 
 export async function runParser(
@@ -17,26 +18,25 @@ export async function runParser(
 		systemPrompt: PARSER_PROMPT,
 		responseFormat: ParserOutputSchema,
 		tools: [],
-		middleware: [createLoggingMiddleware("Parser Agent")],
+		middleware: createAgentMiddleware("Parser Agent"),
 	});
 
 	const result = await parserAgent.invoke(
-		{
-			messages: [{ role: "user", content: idea }],
-		},
+		{ messages: [{ role: "user", content: idea }] },
 		config,
 	);
 
 	const raw = result.structuredResponse;
+	const language = raw.language?.trim() || "en";
 
 	if (raw.validationError) {
-		return { validationError: raw.validationError };
+		return { validationError: raw.validationError, language };
 	}
 
 	if (!raw.problem?.trim() || !raw.solution?.trim()) {
 		return {
-			validationError:
-				"This does not appear to be a valid startup or project idea.",
+			validationError: "Does not appear to be a valid startup or project idea.",
+			language,
 		};
 	}
 
@@ -47,5 +47,6 @@ export async function runParser(
 		techDomain: raw.techDomain ?? "",
 		category: raw.category ?? "",
 		summary: raw.summary ?? "",
+		language,
 	};
 }

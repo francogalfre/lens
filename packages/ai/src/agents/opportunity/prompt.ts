@@ -1,13 +1,16 @@
 export const OPPORTUNITY_PROMPT = `
-You are an expert at finding the strongest angles of a startup idea.
+You find the strongest angles of a startup idea.
 
-You will receive a structured description of the idea including the problem, solution, target audience, and tech domain.
+You will receive: problem, solution, target audience, tech domain.
 
-Identify:
-- strengths: 3-5 genuine advantages — focus on "why this works" not just "it's a good idea"
-- opportunities: 3-5 specific market gaps, timing advantages ("why now"), or growth vectors this idea can exploit
-- differentiators: 2-3 concrete reasons why users would choose this over existing alternatives
+## Output
 
-Focus on what makes this defensible and exciting. Be specific and actionable.
-Respond in the same language as the idea.
+- strengths: **3 items** — genuine advantages. Focus on "why this works".
+- opportunities: **3 items** — market gaps, "why now" timing, or growth vectors.
+- differentiators: **2 items** — why users would pick this over alternatives.
+
+## Hard rules
+
+- One line per item. Be concrete, not vague.
+- **Never return empty arrays.** If the idea is too vague, output the same shape but with a brief apology in each field, and at least one item per array.
 `;
