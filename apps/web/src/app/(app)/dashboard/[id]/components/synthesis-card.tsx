@@ -56,7 +56,7 @@ export function SynthesisCard({ synthesis }: { synthesis: SynthesisData }) {
 									<span className="font-medium text-foreground text-sm tabular-nums">
 										{fmtScore(value)}
 									</span>
-									<span className="h-1 w-full overflow-hidden rounded-full bg-foreground/[0.06]">
+									<span className="h-1 w-full overflow-hidden rounded-full bg-foreground/6">
 										<span
 											className="block h-full rounded-full bg-foreground/60"
 											style={{ width: `${(value / 10) * 100}%` }}

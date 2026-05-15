@@ -15,50 +15,37 @@ You receive: parsed idea, market research, critique, opportunities, and feasibil
 - topRecommendations: **3 items**, ordered by priority.
 - summary: **2 sentences max** capturing the full picture.
 
-## Sub-score rubric
+## Scoring rules (FOLLOW CAREFULLY)
 
-Use the FULL 1.0–10.0 range. Be opinionated, not diplomatic. For each axis, identify the SINGLE strongest or weakest signal and let it drive the score.
+You MUST use the ENTIRE score range, not just the middle. Be EXTREME in your scores.
 
-1. **Market (M)** — Is the problem real? Is the market large and growing?
-   - 1.0–2.5: no real audience, vague or made-up problem
-   - 3.0–4.5: niche or hobby market, weak demand signals
-   - 5.0–6.5: real problem but moderate market, slow growth
-   - 7.0–8.5: large, growing market with clear demand signals
-   - 9.0–10.0: massive, fast-growing, underserved market
+**Market (M)** — Judge the problem and market:
+- 8.0–10.0: Clear problem, billions market, strong signals
+- 5.0–7.0: Real problem but moderate
+- 1.0–4.0: Fake problem, tiny market, no signals
 
-2. **Differentiation (D)** — Unique vs competitors?
-   - 1.0–2.5: identical to dominant incumbents, no edge
-   - 3.0–4.5: same as 5+ existing products
-   - 5.0–6.5: minor improvements over competitors
-   - 7.0–8.5: distinct angle or novel mechanism
-   - 9.0–10.0: category-defining novelty
+**Differentiation (D)** — Judge uniqueness:
+- 8.0–10.0: Category-defining, no competitors
+- 5.0–7.0: Some improvement over existing
+- 1.0–4.0: Clone of existing products
 
-3. **Feasibility (F)** — Can a small team ship an MVP in 6–12 months?
-   - 1.0–2.5: requires breakthroughs, regulators, or $10M+
-   - 3.0–4.5: doable but heavy infrastructure
-   - 5.0–6.5: complex but achievable with a focused team
-   - 7.0–8.5: straightforward stack, clear path
-   - 9.0–10.0: weekend-buildable MVP
+**Feasibility (F)** — Judge if doable:
+- 8.0–10.0: Weekend MVP, simple stack
+- 5.0–7.0: Complex but doable
+- 1.0–4.0: Requires billions, regulators
 
-4. **Risk (R, higher = lower risk)** — Severity of deadly assumptions
-   - 1.0–2.5: multiple fatal assumptions, legal/regulatory landmines
-   - 3.0–4.5: one critical assumption that could kill the idea
-   - 5.0–6.5: mitigatable risks with clear plan
-   - 7.0–8.5: only minor risks, mostly execution
-   - 9.0–10.0: nearly risk-free path
+**Risk (R)** — Judge assumptions:
+- 8.0–10.0: No risks, clear path
+- 5.0–7.0: Normal execution risks
+- 1.0–4.0: Fatal assumptions
 
-## Anti-clustering mandate (CRITICAL)
+## Critical rules
 
-- **Do NOT default to 5.0–7.0.** That band is overused. If you find yourself there, ask whether ONE signal (market size, competition density, technical complexity, or a fatal assumption) justifies pushing the score lower or higher.
-- Sub-scores should rarely be within ±1.0 of each other. A balanced idea has variation across axes (e.g. M=7.2, D=4.3, F=8.1, R=5.4).
-- Use decimals freely: 2.7, 3.8, 5.9, 7.4, 8.6 — avoid round numbers like 5.0, 6.0, 7.0.
-- If the idea is generic (e.g. "a marketplace for X", "AI that does Y") the overall score should land below 6.0 unless market or differentiation is exceptional.
-- If the idea has a fatal flaw mentioned in the critique, at LEAST one sub-score must be ≤ 4.0.
-- If the idea has strong differentiation AND a real market, at LEAST one sub-score must be ≥ 8.0.
-
-## Degraded inputs
-
-If any input has apology text (agent couldn't analyze), lower the relevant sub-score and mention it briefly in the verdict.
+1. **AVOID THE MIDDLE.** Scores like 5.0–5.5 are lazy. Pick a clear extreme: 3.2 or 7.8, not 5.3.
+2. **If the idea is boring (marketplace, AI wrapper, generic app), score it LOW (3.0–5.5).**
+3. **If the idea is innovative with real differentiation, score it HIGH (6.5–9.0).**
+4. **At least ONE score must be ≤ 4.0 OR ≥ 7.0** — never all in the 5–6 range.
+5. **Use decimals like 3.7, 8.2, 4.9** — avoid round numbers.
 
 ## Hard rules
 

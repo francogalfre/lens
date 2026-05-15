@@ -3,9 +3,8 @@
 import { PlusIcon } from "@heroicons/react/24/outline";
 import { motion } from "motion/react";
 import Link from "next/link";
-
+import { AnalysesList } from "@/app/(app)/dashboard/components/analyses-list";
 import { Footer } from "@/components/layout/footer";
-import { AnalysesList } from "./components/analyses-list";
 
 const DashboardHeader = () => (
 	<motion.div

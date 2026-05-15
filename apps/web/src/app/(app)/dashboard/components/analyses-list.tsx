@@ -1,11 +1,10 @@
 "use client";
 
 import { useSuspenseQuery } from "@tanstack/react-query";
-
+import { AnalysesEmptyState } from "@/app/(app)/dashboard/components/analyses-empty-state";
+import { AnalysisListItem } from "@/app/(app)/dashboard/components/analysis-list-item";
+import { formatDateGroup } from "@/app/(app)/dashboard/utils/format-date-group";
 import { trpc } from "@/lib/trpc";
-import { formatDateGroup } from "../utils/format-date-group";
-import { AnalysesEmptyState } from "./analyses-empty-state";
-import { AnalysisListItem } from "./analysis-list-item";
 
 type AnalysisItem = {
 	id: string;

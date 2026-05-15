@@ -5,7 +5,7 @@ import {
 	type AgentState,
 	type StreamEvent,
 	type SynthesisResult,
-} from "@/hooks/analysis.types";
+} from "@/types/analysis";
 
 export const createInitialAgents = (): AgentState[] =>
 	AGENT_ORDER.map((agentName) => ({
@@ -47,7 +47,7 @@ export const useStreamEventHandler = ({
 				return;
 			}
 
-			if (event.type === "agent" && event.agent) {
+			if (event.type === "agent" && event.agent && event.data) {
 				const agentName = event.agent;
 				const data = event.data as Record<string, Record<string, unknown>>;
 
@@ -76,8 +76,9 @@ export const useStreamEventHandler = ({
 				);
 
 				if (agentName === "synthesis_agent") {
-					const synthesisPayload = (data as Record<string, unknown>)
-						?.synthesis_agent as { synthesis?: SynthesisResult } | undefined;
+					const synthesisPayload = data?.synthesis_agent as
+						| { synthesis?: SynthesisResult }
+						| undefined;
 					if (synthesisPayload?.synthesis) {
 						setSynthesis(synthesisPayload.synthesis);
 					}

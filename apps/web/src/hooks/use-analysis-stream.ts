@@ -1,4 +1,4 @@
-import type { StreamEvent } from "@/hooks/analysis.types";
+import type { StreamEvent } from "@/types/analysis";
 
 const parseStreamLines = (
 	buffer: string,
@@ -9,10 +9,12 @@ const parseStreamLines = (
 
 	for (const line of lines) {
 		if (!line.trim()) continue;
+
 		try {
-			onEvent(JSON.parse(line) as StreamEvent);
-		} catch {
-			// skip malformed lines
+			const parsed = JSON.parse(line);
+			onEvent(parsed as StreamEvent);
+		} catch (err) {
+			console.warn("[stream] Skipped malformed line:", line.slice(0, 100));
 		}
 	}
 
@@ -25,12 +27,20 @@ export const consumeAnalysisStream = async (
 ): Promise<void> => {
 	const reader = body.getReader();
 	const decoder = new TextDecoder();
+
 	let buffer = "";
 
-	while (true) {
-		const { done, value } = await reader.read();
-		if (done) break;
-		buffer += decoder.decode(value, { stream: true });
-		buffer = parseStreamLines(buffer, onEvent);
+	try {
+		while (true) {
+			const { done, value } = await reader.read();
+
+			if (done) break;
+
+			buffer += decoder.decode(value, { stream: true });
+			buffer = parseStreamLines(buffer, onEvent);
+		}
+	} catch (error) {
+		console.error("[stream] Failed to read stream:", error);
+		throw error;
 	}
 };

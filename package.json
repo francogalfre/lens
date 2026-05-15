@@ -45,6 +45,8 @@
 		"@langchain/langgraph": "^1.2.9",
 		"@lens/env": "workspace:*",
 		"dotenv": "catalog:",
+		"html2pdf.js": "^0.14.0",
+		"jspdf": "^4.2.1",
 		"zod": "catalog:"
 	},
 	"devDependencies": {

@@ -10,6 +10,7 @@ export function RelativeDate({ date }: RelativeDateProps) {
 	const days = Math.floor(diff / 86400000);
 
 	let label: string;
+
 	if (mins < 1) label = "Just now";
 	else if (mins < 60) label = `${mins}m ago`;
 	else if (hours < 24) label = `${hours}h ago`;

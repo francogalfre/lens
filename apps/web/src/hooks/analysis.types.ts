@@ -1,51 +1,12 @@
-export type Status = "idle" | "running" | "complete" | "error";
-
-export interface UseAnalysisReturn {
-	status: Status;
-	agents: AgentState[];
-	synthesis: SynthesisResult | null;
-	errorMsg: string | null;
-	isRunning: boolean;
-	isComplete: boolean;
-	limitReached: boolean;
-	submitIdea: (idea: string) => Promise<void>;
-	reset: () => void;
-}
-
-export interface StreamEvent {
-	type: "start" | "nodeStart" | "agent" | "complete" | "error";
-	sessionId?: string;
-	agent?: string;
-	data?: unknown;
-	error?: string;
-}
-
-export interface SynthesisResult {
-	overallScore: number;
-	verdict: string;
-	topRecommendations: string[];
-	summary: string;
-}
-
-export interface AgentMessage {
-	type: "status" | "complete" | "error";
-	text: string;
-}
-
-export interface AgentState {
-	name: string;
-	status: "pending" | "running" | "complete";
-	data: unknown;
-	messages?: AgentMessage[];
-}
-
-export const AGENT_ORDER = [
-	"parser_agent",
-	"researcher_agent",
-	"critic_agent",
-	"opportunity_agent",
-	"feasibility_agent",
-	"synthesis_agent",
-] as const;
-
-export type AgentName = (typeof AGENT_ORDER)[number];
+// Re-export all types from the central types folder
+// @deprecated - import from @/types/analysis instead
+export {
+	AGENT_ORDER,
+	type AgentMessage,
+	type AgentName,
+	type AgentState,
+	type Status,
+	type StreamEvent,
+	type SynthesisResult,
+	type UseAnalysisReturn,
+} from "@/types/analysis";
