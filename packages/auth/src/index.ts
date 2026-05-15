@@ -8,8 +8,6 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { emailOTP } from "better-auth/plugins";
 import { Resend } from "resend";
 
-const resend = new Resend(env.RESEND_API_KEY);
-
 export function createAuth() {
 	const db = createDb();
 	const polarClient = new Polar({
@@ -44,6 +42,7 @@ export function createAuth() {
 				async sendVerificationOTP({ email, otp, type }) {
 					if (type !== "forget-password") return;
 
+					const resend = new Resend(env.RESEND_API_KEY);
 					await resend.emails.send({
 						from: env.RESEND_FROM_EMAIL,
 						to: email,

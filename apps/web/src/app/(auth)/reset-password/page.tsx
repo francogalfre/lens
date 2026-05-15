@@ -5,7 +5,7 @@ import { useMutation } from "@tanstack/react-query";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 
 import { authClient } from "@/lib/auth-client";
@@ -27,11 +27,19 @@ const resetPasswordSchema = z.object({
 		.regex(/[0-9]/, "Must contain at least one number"),
 });
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 const ResetPasswordPage = () => {
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const email = searchParams.get("email") ?? "";
 	const [serverError, setServerError] = useState<string | null>(null);
+
+	useEffect(() => {
+		if (!EMAIL_RE.test(email)) {
+			router.replace("/forgot-password" as never);
+		}
+	}, [email, router]);
 
 	const mutation = useMutation({
 		mutationFn: async ({
@@ -66,6 +74,8 @@ const ResetPasswordPage = () => {
 			mutation.mutate(value);
 		},
 	});
+
+	if (!EMAIL_RE.test(email)) return null;
 
 	return (
 		<motion.div

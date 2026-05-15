@@ -22,18 +22,22 @@ export type UsageCheckResult = {
 export async function checkAndIncrementUsage(
 	userId: string,
 ): Promise<UsageCheckResult> {
-	const [activeSub] = await db
-		.select({ id: subscriptions.id })
-		.from(subscriptions)
-		.where(
-			and(eq(subscriptions.userId, userId), eq(subscriptions.status, "active")),
-		)
-		.limit(1);
-
-	const limit = activeSub ? PLAN_LIMITS.premium : PLAN_LIMITS.free;
 	const date = new Date().toISOString().slice(0, 10);
 
 	return db.transaction(async (tx) => {
+		const [activeSub] = await tx
+			.select({ id: subscriptions.id })
+			.from(subscriptions)
+			.where(
+				and(
+					eq(subscriptions.userId, userId),
+					eq(subscriptions.status, "active"),
+				),
+			)
+			.limit(1);
+
+		const limit = activeSub ? PLAN_LIMITS.premium : PLAN_LIMITS.free;
+
 		const inserted = await tx
 			.insert(dailyUsage)
 			.values({ userId, date, count: 1 })

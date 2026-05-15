@@ -13,7 +13,7 @@ const parseStreamLines = (
 		try {
 			const parsed = JSON.parse(line);
 			onEvent(parsed as StreamEvent);
-		} catch (err) {
+		} catch (_err) {
 			console.warn("[stream] Skipped malformed line:", line.slice(0, 100));
 		}
 	}

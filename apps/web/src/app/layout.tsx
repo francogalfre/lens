@@ -1,4 +1,5 @@
 import "../index.css";
+import { Analytics } from "@vercel/analytics/next";
 import { Header } from "@/components/layout/header";
 import { fontMono, fontSans } from "@/lib/fonts";
 import { Providers } from "@/lib/providers";
@@ -21,6 +22,7 @@ export default function RootLayout({
 						<main className="flex flex-1 flex-col pt-16">{children}</main>
 					</div>
 				</Providers>
+				<Analytics />
 			</body>
 		</html>
 	);
