@@ -1,11 +1,6 @@
 "use client";
 
-import {
-	ArrowPathIcon,
-	ArrowUpIcon,
-	PaperClipIcon,
-	XMarkIcon,
-} from "@heroicons/react/24/outline";
+import { ArrowPathIcon, ArrowUpIcon } from "@heroicons/react/24/outline";
 import { Textarea } from "@lens/ui/components/textarea";
 import { useEffect, useRef, useState } from "react";
 
@@ -23,9 +18,7 @@ export function IdeaInputMinimal({
 	className,
 }: IdeaInputMinimalProps) {
 	const [idea, setIdea] = useState("");
-	const [files, setFiles] = useState<File[]>([]);
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
-	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	useEffect(() => {
 		const saved = sessionStorage.getItem("pendingIdea");
@@ -44,17 +37,6 @@ export function IdeaInputMinimal({
 	const handleSubmit = () => {
 		if (!idea.trim() || isRunning) return;
 		onSubmit(idea);
-	};
-
-	const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const selected = e.target.files;
-		if (!selected) return;
-		setFiles((prev) => [...prev, ...Array.from(selected)]);
-		e.target.value = "";
-	};
-
-	const removeFile = (index: number) => {
-		setFiles((prev) => prev.filter((_, i) => i !== index));
 	};
 
 	const canSubmit = idea.trim().length > 0 && !isRunning && !isPendingAuth;
@@ -81,50 +63,7 @@ export function IdeaInputMinimal({
 					aria-label="Describe your idea"
 				/>
 
-				{files.length > 0 && (
-					<div className="flex flex-wrap gap-1.5 px-5 pb-2">
-						{files.map((file, i) => (
-							<span
-								key={`${file.name}-${i}`}
-								className="inline-flex items-center gap-1.5 rounded-md border border-border bg-secondary/50 px-2 py-1 font-mono text-[11px] text-foreground/70"
-							>
-								<PaperClipIcon className="h-3 w-3" />
-								<span className="max-w-[140px] truncate">{file.name}</span>
-								<button
-									type="button"
-									onClick={() => removeFile(i)}
-									className="text-foreground/40 hover:text-foreground"
-									aria-label={`Remove ${file.name}`}
-								>
-									<XMarkIcon className="h-3 w-3" />
-								</button>
-							</span>
-						))}
-					</div>
-				)}
-
-				<div className="flex items-center justify-between px-3 pb-3">
-					<div className="flex items-center gap-1">
-						<input
-							ref={fileInputRef}
-							type="file"
-							className="hidden"
-							multiple
-							onChange={handleFileSelect}
-							accept=".pdf,.txt,.md,.doc,.docx"
-							aria-label="Attach files"
-						/>
-						<button
-							type="button"
-							onClick={() => fileInputRef.current?.click()}
-							disabled={isRunning || isPendingAuth}
-							className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-foreground/50 transition-colors hover:bg-secondary/60 hover:text-foreground disabled:opacity-40"
-							aria-label="Attach a document"
-						>
-							<PaperClipIcon className="h-4 w-4" />
-						</button>
-					</div>
-
+				<div className="flex items-center justify-end px-3 pb-3">
 					<button
 						type="button"
 						onClick={handleSubmit}
