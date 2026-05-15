@@ -16,6 +16,7 @@ export function Logo() {
 				width={22}
 				height={22}
 				priority
+				loading="eager"
 				className="shrink-0 dark:invert"
 			/>
 			<span className="font-semibold text-foreground text-sm tracking-tight">

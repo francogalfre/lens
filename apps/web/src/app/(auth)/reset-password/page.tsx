@@ -4,21 +4,22 @@ import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
 import { motion } from "motion/react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { z } from "zod";
 
-import { trpc } from "@/lib/trpc";
+import { authClient } from "@/lib/auth-client";
 import { AuthSubmitButton } from "../components/auth-submit-button";
 import { PasswordField } from "../components/password-field";
 import { ServerErrorBanner } from "../components/server-error-banner";
 import { TextField } from "../components/text-field";
-import { safeCallback } from "../utils/form-helpers";
-import { humanizeRegisterError } from "../utils/humanize-errors";
+import { humanizeResetPasswordError } from "../utils/humanize-errors";
 
-const registerSchema = z.object({
-	name: z.string().min(2, "Name must be at least 2 characters"),
-	email: z.string().email("Invalid email"),
+const resetPasswordSchema = z.object({
+	otp: z
+		.string()
+		.length(6, "Code must be 6 digits")
+		.regex(/^\d+$/, "Code must be numeric"),
 	password: z
 		.string()
 		.min(8, "Must be at least 8 characters")
@@ -26,28 +27,40 @@ const registerSchema = z.object({
 		.regex(/[0-9]/, "Must contain at least one number"),
 });
 
-const RegisterPage = () => {
+const ResetPasswordPage = () => {
+	const router = useRouter();
 	const searchParams = useSearchParams();
-	const callbackUrl = safeCallback(searchParams.get("callbackUrl"));
+	const email = searchParams.get("email") ?? "";
 	const [serverError, setServerError] = useState<string | null>(null);
 
-	const mutation = useMutation(
-		trpc.auth.signUp.mutationOptions({
-			onSuccess: () => {
-				setServerError(null);
-				window.location.href = callbackUrl;
-			},
-			onError: (error: unknown) => {
-				const message =
-					error instanceof Error ? error.message : "Sign up failed";
-				setServerError(humanizeRegisterError(message));
-			},
-		}),
-	);
+	const mutation = useMutation({
+		mutationFn: async ({
+			otp,
+			password,
+		}: {
+			otp: string;
+			password: string;
+		}) => {
+			const { error } = await authClient.emailOtp.resetPassword({
+				email,
+				otp,
+				password,
+			});
+			if (error) throw new Error(error.message);
+		},
+		onSuccess: () => {
+			router.push("/login" as never);
+		},
+		onError: (error: unknown) => {
+			const message =
+				error instanceof Error ? error.message : "Something went wrong";
+			setServerError(humanizeResetPasswordError(message));
+		},
+	});
 
 	const form = useForm({
-		defaultValues: { name: "", email: "", password: "" },
-		validators: { onSubmit: registerSchema },
+		defaultValues: { otp: "", password: "" },
+		validators: { onSubmit: resetPasswordSchema },
 		onSubmit: ({ value }) => {
 			setServerError(null);
 			mutation.mutate(value);
@@ -62,10 +75,11 @@ const RegisterPage = () => {
 		>
 			<div className="mb-8">
 				<h1 className="font-medium text-3xl text-foreground leading-tight tracking-tight">
-					Create account
+					Reset password
 				</h1>
 				<p className="mt-1.5 text-foreground/55 text-sm">
-					Start putting your ideas under the lens.
+					Enter the 6-digit code we sent to{" "}
+					<span className="text-foreground">{email}</span>.
 				</p>
 			</div>
 
@@ -79,26 +93,13 @@ const RegisterPage = () => {
 				}}
 				className="space-y-4"
 			>
-				<form.Field name="name">
+				<form.Field name="otp">
 					{(field) => (
 						<TextField
-							id="name"
-							label="Full name"
-							placeholder="Your name"
-							autoComplete="name"
-							field={field}
-						/>
-					)}
-				</form.Field>
-
-				<form.Field name="email">
-					{(field) => (
-						<TextField
-							id="email"
-							label="Email"
-							type="email"
-							placeholder="you@example.com"
-							autoComplete="email"
+							id="otp"
+							label="Reset code"
+							placeholder="123456"
+							autoComplete="one-time-code"
 							field={field}
 						/>
 					)}
@@ -107,7 +108,7 @@ const RegisterPage = () => {
 				<form.Field name="password">
 					{(field) => (
 						<PasswordField
-							placeholder="8+ characters"
+							placeholder="New password (8+ characters)"
 							autoComplete="new-password"
 							field={field}
 						/>
@@ -124,24 +125,24 @@ const RegisterPage = () => {
 						<AuthSubmitButton
 							isDisabled={!canSubmit || isSubmitting || mutation.isPending}
 							isLoading={isSubmitting || mutation.isPending}
-							loadingLabel="Creating account…"
-							idleLabel="Create account"
+							loadingLabel="Resetting password…"
+							idleLabel="Reset password"
 						/>
 					)}
 				</form.Subscribe>
 			</form>
 
 			<p className="mt-6 text-foreground/55 text-sm">
-				Already have an account?{" "}
+				Didn't receive the code?{" "}
 				<Link
-					href={`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`}
+					href={"/forgot-password" as never}
 					className="text-foreground underline-offset-4 transition-colors hover:underline"
 				>
-					Sign in
+					Try again
 				</Link>
 			</p>
 		</motion.div>
 	);
 };
 
-export default RegisterPage;
+export default ResetPasswordPage;

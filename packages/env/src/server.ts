@@ -17,6 +17,11 @@ export const env = createEnv({
 		POLAR_ENV: z.enum(["sandbox", "production"]).default("production"),
 		OPENROUTER_API_KEY: z.string().min(1),
 		OPENROUTER_MODEL: z.string().min(1).default("openai/gpt-oss-120b:free"),
+		RESEND_API_KEY: z.string().min(1),
+		RESEND_FROM_EMAIL: z
+			.string()
+			.min(1)
+			.default("Lens <noreply@yourdomain.com>"),
 	},
 	runtimeEnv: process.env,
 	emptyStringAsUndefined: true,

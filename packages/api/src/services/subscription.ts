@@ -6,6 +6,9 @@ import { env } from "@lens/env/server";
 import { Polar } from "@polar-sh/sdk";
 import { TRPCError } from "@trpc/server";
 import { and, eq } from "drizzle-orm";
+import { Resend } from "resend";
+
+const resend = new Resend(env.RESEND_API_KEY);
 
 import { PLAN_LIMITS } from "@/config";
 import { subscriptionEventSchema } from "@/types/webhook";
@@ -120,6 +123,47 @@ export async function getSubscriptionStatus(userId: string) {
 		cancelAtPeriodEnd: sub?.cancelAtPeriodEnd ?? false,
 		currentPeriodEnd: sub?.currentPeriodEnd ?? null,
 	};
+}
+
+async function sendSubscriptionWelcomeEmail(email: string): Promise<void> {
+	await resend.emails.send({
+		from: env.RESEND_FROM_EMAIL,
+		to: email,
+		subject: "Welcome to Lens Premium",
+		html: `
+			<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:40px 24px;">
+				<p style="font-size:22px;font-weight:600;margin:0 0 8px;">You're on Premium</p>
+				<p style="font-size:14px;color:#6b7280;margin:0 0 24px;">Your Lens Premium subscription is now active.</p>
+				<table style="width:100%;border-collapse:collapse;font-size:14px;margin-bottom:32px;">
+					<tr>
+						<td style="padding:12px 0;border-bottom:1px solid #e5e7eb;color:#6b7280;">Plan</td>
+						<td style="padding:12px 0;border-bottom:1px solid #e5e7eb;text-align:right;font-weight:500;">Premium</td>
+					</tr>
+					<tr>
+						<td style="padding:12px 0;color:#6b7280;">Daily analyses</td>
+						<td style="padding:12px 0;text-align:right;font-weight:500;">Unlimited</td>
+					</tr>
+				</table>
+				<a href="${env.CORS_ORIGIN}" style="display:inline-block;background:#111111;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:500;">Go to dashboard</a>
+			</div>
+		`,
+	});
+}
+
+export async function handleSubscriptionCreated(
+	payload: unknown,
+): Promise<void> {
+	await upsertSubscription(payload);
+
+	const parsed = subscriptionEventSchema.safeParse(payload);
+	if (!parsed.success) return;
+
+	const { customer } = parsed.data.data;
+	if (customer.email) {
+		await sendSubscriptionWelcomeEmail(customer.email).catch((err) => {
+			console.error("[subscription] welcome email failed", { error: err });
+		});
+	}
 }
 
 export async function upsertSubscription(payload: unknown): Promise<void> {

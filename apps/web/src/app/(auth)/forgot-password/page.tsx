@@ -4,53 +4,49 @@ import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
 import { motion } from "motion/react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { z } from "zod";
 
-import { trpc } from "@/lib/trpc";
+import { authClient } from "@/lib/auth-client";
 import { AuthSubmitButton } from "../components/auth-submit-button";
-import { PasswordField } from "../components/password-field";
 import { ServerErrorBanner } from "../components/server-error-banner";
 import { TextField } from "../components/text-field";
-import { safeCallback } from "../utils/form-helpers";
-import { humanizeRegisterError } from "../utils/humanize-errors";
+import { humanizeForgotPasswordError } from "../utils/humanize-errors";
 
-const registerSchema = z.object({
-	name: z.string().min(2, "Name must be at least 2 characters"),
+const forgotPasswordSchema = z.object({
 	email: z.string().email("Invalid email"),
-	password: z
-		.string()
-		.min(8, "Must be at least 8 characters")
-		.regex(/[A-Z]/, "Must contain at least one uppercase letter")
-		.regex(/[0-9]/, "Must contain at least one number"),
 });
 
-const RegisterPage = () => {
-	const searchParams = useSearchParams();
-	const callbackUrl = safeCallback(searchParams.get("callbackUrl"));
+const ForgotPasswordPage = () => {
+	const router = useRouter();
 	const [serverError, setServerError] = useState<string | null>(null);
 
-	const mutation = useMutation(
-		trpc.auth.signUp.mutationOptions({
-			onSuccess: () => {
-				setServerError(null);
-				window.location.href = callbackUrl;
-			},
-			onError: (error: unknown) => {
-				const message =
-					error instanceof Error ? error.message : "Sign up failed";
-				setServerError(humanizeRegisterError(message));
-			},
-		}),
-	);
+	const mutation = useMutation({
+		mutationFn: async (email: string) => {
+			const { error } = await authClient.emailOtp.requestPasswordReset({
+				email,
+			});
+			if (error) throw new Error(error.message);
+		},
+		onSuccess: (_, email) => {
+			router.push(
+				`/reset-password?email=${encodeURIComponent(email)}` as never,
+			);
+		},
+		onError: (error: unknown) => {
+			const message =
+				error instanceof Error ? error.message : "Something went wrong";
+			setServerError(humanizeForgotPasswordError(message));
+		},
+	});
 
 	const form = useForm({
-		defaultValues: { name: "", email: "", password: "" },
-		validators: { onSubmit: registerSchema },
+		defaultValues: { email: "" },
+		validators: { onSubmit: forgotPasswordSchema },
 		onSubmit: ({ value }) => {
 			setServerError(null);
-			mutation.mutate(value);
+			mutation.mutate(value.email);
 		},
 	});
 
@@ -62,10 +58,10 @@ const RegisterPage = () => {
 		>
 			<div className="mb-8">
 				<h1 className="font-medium text-3xl text-foreground leading-tight tracking-tight">
-					Create account
+					Forgot password?
 				</h1>
 				<p className="mt-1.5 text-foreground/55 text-sm">
-					Start putting your ideas under the lens.
+					Enter your email and we'll send you a reset code.
 				</p>
 			</div>
 
@@ -79,18 +75,6 @@ const RegisterPage = () => {
 				}}
 				className="space-y-4"
 			>
-				<form.Field name="name">
-					{(field) => (
-						<TextField
-							id="name"
-							label="Full name"
-							placeholder="Your name"
-							autoComplete="name"
-							field={field}
-						/>
-					)}
-				</form.Field>
-
 				<form.Field name="email">
 					{(field) => (
 						<TextField
@@ -99,16 +83,6 @@ const RegisterPage = () => {
 							type="email"
 							placeholder="you@example.com"
 							autoComplete="email"
-							field={field}
-						/>
-					)}
-				</form.Field>
-
-				<form.Field name="password">
-					{(field) => (
-						<PasswordField
-							placeholder="8+ characters"
-							autoComplete="new-password"
 							field={field}
 						/>
 					)}
@@ -124,17 +98,17 @@ const RegisterPage = () => {
 						<AuthSubmitButton
 							isDisabled={!canSubmit || isSubmitting || mutation.isPending}
 							isLoading={isSubmitting || mutation.isPending}
-							loadingLabel="Creating account…"
-							idleLabel="Create account"
+							loadingLabel="Sending code…"
+							idleLabel="Send reset code"
 						/>
 					)}
 				</form.Subscribe>
 			</form>
 
 			<p className="mt-6 text-foreground/55 text-sm">
-				Already have an account?{" "}
+				Remembered it?{" "}
 				<Link
-					href={`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`}
+					href={"/login" as never}
 					className="text-foreground underline-offset-4 transition-colors hover:underline"
 				>
 					Sign in
@@ -144,4 +118,4 @@ const RegisterPage = () => {
 	);
 };
 
-export default RegisterPage;
+export default ForgotPasswordPage;

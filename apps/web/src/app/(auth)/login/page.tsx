@@ -89,11 +89,21 @@ const LoginPage = () => {
 
 				<form.Field name="password">
 					{(field) => (
-						<PasswordField
-							placeholder="••••••••"
-							autoComplete="current-password"
-							field={field}
-						/>
+						<div className="space-y-1">
+							<PasswordField
+								placeholder="••••••••"
+								autoComplete="current-password"
+								field={field}
+							/>
+							<div className="flex justify-end">
+								<Link
+									href={"/forgot-password" as never}
+									className="text-foreground/45 text-xs underline-offset-4 transition-colors hover:text-foreground hover:underline"
+								>
+									Forgot password?
+								</Link>
+							</div>
+						</div>
 					)}
 				</form.Field>
 

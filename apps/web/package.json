@@ -28,6 +28,7 @@
 		"react": "catalog:",
 		"react-dom": "catalog:",
 		"sonner": "catalog:",
+		"jspdf": "^4.2.1",
 		"zod": "catalog:"
 	},
 	"devDependencies": {
