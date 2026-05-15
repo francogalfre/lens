@@ -1,5 +1,6 @@
 "use client";
 
+import { env } from "@lens/env/web";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
@@ -54,11 +55,15 @@ export const useAnalysis = (): UseAnalysisReturn => {
 			setErrorMsg(null);
 
 			try {
-				const response = await fetch("/api/analyze", {
-					method: "POST",
-					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify({ rawIdea }),
-				});
+				const response = await fetch(
+					`${env.NEXT_PUBLIC_SERVER_URL}/api/analysis/stream`,
+					{
+						method: "POST",
+						credentials: "include",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify({ rawIdea }),
+					},
+				);
 
 				if (response.status === 401) {
 					sessionStorage.setItem("analyzingIdea", rawIdea);
