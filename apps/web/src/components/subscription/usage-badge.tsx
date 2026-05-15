@@ -1,137 +1,115 @@
 "use client";
 
 import { SparklesIcon } from "@heroicons/react/24/outline";
-import {
-	useMutation,
-	useQueryClient,
-	useSuspenseQuery,
-} from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { Suspense, useState } from "react";
-import { toast } from "sonner";
+import { Suspense } from "react";
 
 import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/lib/trpc";
-import { CancelPlanDialog } from "./cancel-plan-dialog";
+import { UsageCounter } from "./usage-counter";
 
-interface SubscriptionStatus {
+type SubscriptionStatus = {
 	usedToday: number;
 	limit: number;
 	plan: "free" | "premium";
 	cancelAtPeriodEnd: boolean;
 	currentPeriodEnd: string | null;
-}
+};
 
-function formatEndDate(iso: string | null): string {
+const formatEndDate = (iso: string | null): string => {
 	if (!iso) return "soon";
 	return new Date(iso).toLocaleDateString(undefined, {
 		month: "short",
 		day: "numeric",
 	});
-}
+};
 
-function Badge() {
-	const queryClient = useQueryClient();
-	const { data } = useSuspenseQuery(trpc.subscription.getStatus.queryOptions());
-	const status = data as SubscriptionStatus;
-	const { usedToday, limit, plan, cancelAtPeriodEnd, currentPeriodEnd } =
-		status;
-	const isFull = usedToday >= limit;
-	const [confirmOpen, setConfirmOpen] = useState(false);
+const FreeBadge = ({
+	usedToday,
+	limit,
+	ariaLabel,
+}: {
+	usedToday: number;
+	limit: number;
+	ariaLabel: string;
+}) => (
+	<Link
+		href="/upgrade"
+		aria-label={`${ariaLabel}. Upgrade to Premium`}
+		className="group inline-flex items-center gap-1.5 rounded-full border border-border bg-card/60 px-1 py-1 pr-3 text-xs transition-all hover:bg-card hover:shadow-sm"
+	>
+		<UsageCounter used={usedToday} limit={limit} />
+		<span className="flex items-center gap-1 font-medium text-foreground/80 transition-colors group-hover:text-foreground">
+			<SparklesIcon className="h-3 w-3" />
+			Upgrade
+		</span>
+	</Link>
+);
 
-	const cancel = useMutation(
-		trpc.subscription.cancel.mutationOptions({
-			onSuccess: (result) => {
-				queryClient.invalidateQueries({
-					queryKey: trpc.subscription.getStatus.queryKey(),
-				});
-				setConfirmOpen(false);
-				const data = result as { alreadyCancelled?: boolean };
-				if (data?.alreadyCancelled) {
-					toast.info("Your plan is already scheduled to cancel.");
-				} else {
-					toast.success("Plan cancelled", {
-						description: `You'll keep Premium access until ${formatEndDate(currentPeriodEnd)}.`,
-					});
-				}
-			},
-			onError: () => {
-				toast.error("Could not cancel plan. Please try again.");
-			},
-		}),
-	);
-
-	const showCancelled = plan === "premium" && cancelAtPeriodEnd;
-	const ariaUsage = `${usedToday} of ${limit} analyses used today`;
-
-	if (plan === "free") {
-		return (
+const PremiumBadge = ({
+	usedToday,
+	limit,
+	cancelAtPeriodEnd,
+	currentPeriodEnd,
+	ariaLabel,
+}: {
+	usedToday: number;
+	limit: number;
+	cancelAtPeriodEnd: boolean;
+	currentPeriodEnd: string | null;
+	ariaLabel: string;
+}) => (
+	<div
+		aria-label={ariaLabel}
+		role="status"
+		className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card/60 px-1 py-1 pr-2.5 text-xs"
+	>
+		<UsageCounter used={usedToday} limit={limit} />
+		{cancelAtPeriodEnd ? (
+			<span className="flex items-center gap-1 font-medium text-amber-600 dark:text-amber-400">
+				Ends {formatEndDate(currentPeriodEnd)}
+			</span>
+		) : (
 			<Link
 				href="/upgrade"
-				aria-label={`${ariaUsage}. Upgrade to Premium`}
-				className="group inline-flex items-center gap-1.5 rounded-full border border-border bg-card/60 px-1 py-1 pr-3 text-xs transition-all hover:bg-card hover:shadow-sm"
+				className="flex items-center gap-1 font-medium text-foreground/80 transition-colors hover:text-foreground"
+				aria-label="Manage premium plan"
 			>
-				<span
-					aria-hidden
-					className={`flex h-6 items-center justify-center rounded-full px-2 font-mono tabular-nums ${
-						isFull
-							? "bg-destructive/10 text-destructive"
-							: "bg-foreground/[0.05] text-foreground/70"
-					}`}
-				>
-					{usedToday}/{limit}
-				</span>
-				<span className="flex items-center gap-1 font-medium text-foreground/80 transition-colors group-hover:text-foreground">
-					<SparklesIcon className="h-3 w-3" />
-					Upgrade
-				</span>
+				<SparklesIcon className="h-3 w-3" />
+				Premium
 			</Link>
+		)}
+	</div>
+);
+
+const Badge = () => {
+	const { data } = useSuspenseQuery(trpc.subscription.getStatus.queryOptions());
+	const status = data as SubscriptionStatus;
+	const ariaLabel = `${status.usedToday} of ${status.limit} analyses used today`;
+
+	if (status.plan === "free") {
+		return (
+			<FreeBadge
+				usedToday={status.usedToday}
+				limit={status.limit}
+				ariaLabel={ariaLabel}
+			/>
 		);
 	}
 
 	return (
-		<>
-			<div
-				aria-label={ariaUsage}
-				role="status"
-				className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card/60 px-1 py-1 pr-2.5 text-xs"
-			>
-				<span
-					aria-hidden
-					className={`flex h-6 items-center justify-center rounded-full px-2 font-mono tabular-nums ${
-						isFull
-							? "bg-destructive/10 text-destructive"
-							: "bg-foreground/[0.05] text-foreground/70"
-					}`}
-				>
-					{usedToday}/{limit}
-				</span>
-				{showCancelled ? (
-					<span className="flex items-center gap-1 font-medium text-amber-600 dark:text-amber-400">
-						Ends {formatEndDate(currentPeriodEnd)}
-					</span>
-				) : (
-					<Link
-						href="/upgrade"
-						className="flex items-center gap-1 font-medium text-foreground/80 transition-colors hover:text-foreground"
-						aria-label="Manage premium plan"
-					>
-						<SparklesIcon className="h-3 w-3" />
-						Premium
-					</Link>
-				)}
-			</div>
-			<CancelPlanDialog
-				open={confirmOpen}
-				onOpenChange={setConfirmOpen}
-				onConfirm={() => cancel.mutate()}
-				isPending={cancel.isPending}
-			/>
-		</>
+		<PremiumBadge
+			usedToday={status.usedToday}
+			limit={status.limit}
+			cancelAtPeriodEnd={status.cancelAtPeriodEnd}
+			currentPeriodEnd={status.currentPeriodEnd}
+			ariaLabel={ariaLabel}
+		/>
 	);
-}
+};
 
-function AuthenticatedBadge() {
+export const UsageBadge = () => {
 	const { data: session, isPending } = authClient.useSession();
 
 	if (isPending || !session) return null;
@@ -145,8 +123,4 @@ function AuthenticatedBadge() {
 			<Badge />
 		</Suspense>
 	);
-}
-
-export function UsageBadge() {
-	return <AuthenticatedBadge />;
-}
+};

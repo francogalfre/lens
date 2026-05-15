@@ -1,61 +1,42 @@
-import { analysisGraph, createLogger, toRunConfig } from "@lens/ai";
 import { db } from "@lens/db";
 import { analyses } from "@lens/db/schema/analyses";
-import { TRPCError } from "@trpc/server";
+import { eq, sql } from "drizzle-orm";
 
-export async function saveAnalysis(params: {
+export async function createAnalysis(params: {
 	userId: string;
 	rawIdea: string;
-	parsedIdea: unknown;
-	synthesis: unknown | null;
-	agentData: Record<string, unknown>;
-}): Promise<void> {
-	await db.insert(analyses).values(params);
+}): Promise<string> {
+	const id = crypto.randomUUID();
+	await db.insert(analyses).values({
+		id,
+		userId: params.userId,
+		rawIdea: params.rawIdea,
+		agentData: {},
+	});
+	return id;
 }
 
-export async function runAnalysis(userId: string, rawIdea: string) {
-	const sessionId = `session-${Date.now()}-${crypto.randomUUID()}-${userId}`;
-	const logger = createLogger(toRunConfig(sessionId));
+export async function patchAnalysis(
+	id: string,
+	patch: {
+		parsedIdea?: unknown;
+		synthesis?: unknown;
+		agentData?: { name: string; data: unknown };
+	},
+): Promise<void> {
+	const updates: Record<string, unknown> = {};
 
-	try {
-		const graphStream = await analysisGraph.stream(
-			{ rawIdea },
-			{ streamMode: "updates", ...toRunConfig(sessionId) },
-		);
-
-		const agentData: Record<string, unknown> = {};
-		let parsedIdea: unknown = null;
-		let synthesis: unknown = null;
-
-		for await (const update of graphStream) {
-			const nodeName = Object.keys(update as object)[0];
-
-			if (!nodeName) continue;
-			const nodeData = (update as Record<string, Record<string, unknown>>)[
-				nodeName
-			];
-
-			agentData[nodeName] = nodeData;
-
-			if (nodeName === "parser_agent")
-				parsedIdea = nodeData?.parsedIdea ?? null;
-			if (nodeName === "synthesis_agent")
-				synthesis = nodeData?.synthesis ?? null;
-		}
-
-		if (parsedIdea && synthesis) {
-			await saveAnalysis({ userId, rawIdea, parsedIdea, synthesis, agentData });
-		}
-
-		return { sessionId, agentData };
-	} catch (error) {
-		logger.error("Analysis failed", {
-			error: error instanceof Error ? error.message : String(error),
-		});
-		throw new TRPCError({
-			code: "INTERNAL_SERVER_ERROR",
-			message: "Analysis failed",
-			cause: error,
-		});
+	if (patch.parsedIdea !== undefined) updates.parsedIdea = patch.parsedIdea;
+	if (patch.synthesis !== undefined) updates.synthesis = patch.synthesis;
+	if (patch.agentData) {
+		updates.agentData = sql`jsonb_set(coalesce(${analyses.agentData}, '{}'::jsonb), ARRAY[${patch.agentData.name}], ${JSON.stringify(patch.agentData.data)}::jsonb, true)`;
 	}
+
+	if (Object.keys(updates).length === 0) return;
+
+	await db.update(analyses).set(updates).where(eq(analyses.id, id));
+}
+
+export async function deleteAnalysis(id: string): Promise<void> {
+	await db.delete(analyses).where(eq(analyses.id, id));
 }

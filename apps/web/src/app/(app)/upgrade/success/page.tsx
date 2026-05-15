@@ -1,6 +1,5 @@
 "use client";
 
-import { CheckIcon, SparklesIcon } from "@heroicons/react/24/outline";
 import { useQueryClient } from "@tanstack/react-query";
 import { motion } from "motion/react";
 import Link from "next/link";
@@ -10,22 +9,26 @@ import { Suspense, useEffect, useState } from "react";
 import Loader from "@/components/ui/loader";
 import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/lib/trpc";
+import { Confetti } from "./components/confetti";
+import { ReceiptDetails } from "./components/receipt-details";
+import { SuccessHeader } from "./components/success-header";
 
-export default function UpgradeSuccessPage() {
-	return (
-		<Suspense
-			fallback={
-				<div className="flex min-h-[60vh] items-center justify-center">
-					<Loader size={32} strokeWidth={2.5} className="text-foreground/60" />
-				</div>
-			}
-		>
-			<SuccessContent />
-		</Suspense>
-	);
-}
+const ONE_MONTH_MS = 30 * 24 * 60 * 60 * 1000;
 
-function SuccessContent() {
+const formatNextBilling = () =>
+	new Intl.DateTimeFormat("en-GB", {
+		day: "numeric",
+		month: "short",
+		year: "numeric",
+	}).format(new Date(Date.now() + ONE_MONTH_MS));
+
+const SuspenseFallback = () => (
+	<div className="flex min-h-[60vh] items-center justify-center">
+		<Loader size={32} strokeWidth={2.5} className="text-foreground/60" />
+	</div>
+);
+
+const SuccessContent = () => {
 	const searchParams = useSearchParams();
 	const checkoutId = searchParams.get("checkout_id") ?? "";
 	const { data: session } = authClient.useSession();
@@ -34,7 +37,7 @@ function SuccessContent() {
 	const [showConfetti, setShowConfetti] = useState(false);
 
 	useEffect(() => {
-		async function invalidateAndRefresh() {
+		const invalidateAndRefresh = async () => {
 			await Promise.all([
 				queryClient.invalidateQueries({
 					queryKey: trpc.subscription.getStatus.queryKey(),
@@ -44,26 +47,21 @@ function SuccessContent() {
 				}),
 			]);
 			router.refresh();
-		}
+		};
 		invalidateAndRefresh();
 	}, [queryClient, router]);
 
 	useEffect(() => {
-		const t = setTimeout(() => setShowConfetti(true), 120);
-		const u = setTimeout(() => setShowConfetti(false), 6000);
+		const showTimer = setTimeout(() => setShowConfetti(true), 120);
+		const hideTimer = setTimeout(() => setShowConfetti(false), 6000);
 		return () => {
-			clearTimeout(t);
-			clearTimeout(u);
+			clearTimeout(showTimer);
+			clearTimeout(hideTimer);
 		};
 	}, []);
 
 	const displayId = checkoutId ? checkoutId.slice(0, 16).toUpperCase() : "—";
-
-	const nextBilling = new Intl.DateTimeFormat("en-GB", {
-		day: "numeric",
-		month: "short",
-		year: "numeric",
-	}).format(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000));
+	const nextBilling = formatNextBilling();
 
 	return (
 		<div className="relative flex min-h-[calc(100vh-7rem)] items-center justify-center px-4 pt-28 pb-12">
@@ -83,89 +81,16 @@ function SuccessContent() {
 					className="absolute top-1/2 right-0 h-7 w-7 translate-x-1/2 -translate-y-1/2 rounded-full bg-background"
 				/>
 
-				<div className="flex flex-col items-center px-8 pt-10 pb-6 text-center">
-					<motion.div
-						initial={{ scale: 0.4, opacity: 0 }}
-						animate={{ scale: 1, opacity: 1 }}
-						transition={{ delay: 0.25, type: "spring", stiffness: 220 }}
-						className="rounded-full bg-foreground/[0.05] p-3 ring-1 ring-foreground/10"
-					>
-						<motion.span
-							initial={{ scale: 0.4 }}
-							animate={{ scale: 1 }}
-							transition={{ delay: 0.4, type: "spring", stiffness: 260 }}
-							className="flex h-10 w-10 items-center justify-center rounded-full bg-foreground text-background"
-						>
-							<CheckIcon className="h-5 w-5" strokeWidth={3} />
-						</motion.span>
-					</motion.div>
-					<h1 className="mt-5 font-medium text-2xl text-foreground leading-tight tracking-tight">
-						Welcome to Premium
-					</h1>
-					<p className="mt-1.5 text-foreground/55 text-sm">
-						Your subscription is active. Time to put more ideas under the lens.
-					</p>
-				</div>
-
+				<SuccessHeader />
 				<div
 					aria-hidden
 					className="mx-8 border-border/80 border-t-2 border-dashed"
 				/>
-
-				<div className="space-y-5 px-8 py-6">
-					<div className="grid grid-cols-2 gap-4 text-left">
-						<div>
-							<p className="text-[10px] text-foreground/45 uppercase tracking-wider">
-								Plan
-							</p>
-							<div className="mt-0.5 flex items-center gap-1.5 font-medium text-foreground text-sm">
-								<SparklesIcon className="h-3.5 w-3.5" />
-								Premium
-							</div>
-						</div>
-						<div className="text-right">
-							<p className="text-[10px] text-foreground/45 uppercase tracking-wider">
-								Billed
-							</p>
-							<p className="mt-0.5 font-semibold text-base text-foreground">
-								$4.99
-								<span className="ml-0.5 font-normal text-foreground/45 text-xs">
-									/mo
-								</span>
-							</p>
-						</div>
-					</div>
-
-					<div className="grid grid-cols-2 gap-4 text-left">
-						<div>
-							<p className="text-[10px] text-foreground/45 uppercase tracking-wider">
-								Checkout ID
-							</p>
-							<p className="mt-0.5 font-mono text-foreground/80 text-xs">
-								{displayId}
-							</p>
-						</div>
-						<div className="text-right">
-							<p className="text-[10px] text-foreground/45 uppercase tracking-wider">
-								Renews
-							</p>
-							<p className="mt-0.5 text-foreground/80 text-xs">{nextBilling}</p>
-						</div>
-					</div>
-
-					{session?.user?.email ? (
-						<div className="rounded-xl bg-muted/50 px-3.5 py-3">
-							<p className="text-[10px] text-foreground/45 uppercase tracking-wider">
-								Account
-							</p>
-							<p className="mt-0.5 font-medium text-foreground text-sm">
-								{session.user.name}
-							</p>
-							<p className="text-foreground/55 text-xs">{session.user.email}</p>
-						</div>
-					) : null}
-				</div>
-
+				<ReceiptDetails
+					displayId={displayId}
+					nextBilling={nextBilling}
+					user={session?.user ?? null}
+				/>
 				<div
 					aria-hidden
 					className="mx-8 border-border/80 border-t-2 border-dashed"
@@ -188,45 +113,12 @@ function SuccessContent() {
 			</motion.div>
 		</div>
 	);
-}
+};
 
-const COLORS = [
-	"#ef4444",
-	"#f97316",
-	"#eab308",
-	"#22c55e",
-	"#3b82f6",
-	"#8b5cf6",
-];
+const UpgradeSuccessPage = () => (
+	<Suspense fallback={<SuspenseFallback />}>
+		<SuccessContent />
+	</Suspense>
+);
 
-function Confetti() {
-	const pieces = Array.from({ length: 80 }, (_, i) => i);
-	return (
-		<>
-			<style>{`
-				@keyframes lensConfettiFall {
-					0%   { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
-					100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
-				}
-			`}</style>
-			<div
-				aria-hidden
-				className="pointer-events-none fixed inset-0 z-0 overflow-hidden"
-			>
-				{pieces.map((i) => (
-					<span
-						key={i}
-						className="absolute h-3 w-1.5 rounded-sm"
-						style={{
-							left: `${Math.random() * 100}%`,
-							top: `${-20 + Math.random() * 10}%`,
-							backgroundColor: COLORS[i % COLORS.length],
-							transform: `rotate(${Math.random() * 360}deg)`,
-							animation: `lensConfettiFall ${2.4 + Math.random() * 2.4}s ${Math.random() * 1.8}s linear forwards`,
-						}}
-					/>
-				))}
-			</div>
-		</>
-	);
-}
+export default UpgradeSuccessPage;

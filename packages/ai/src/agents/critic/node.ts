@@ -12,7 +12,7 @@ export const criticNode = async (state: State, config: RunnableConfig) => {
 
 	return {
 		critique: await runCritic(
-			buildIdeaContext(state.rawIdea, state.parsedIdea),
+			buildIdeaContext(state.rawIdea, state.parsedIdea, state.language),
 			config,
 		),
 		completedAgents: ["critic"],

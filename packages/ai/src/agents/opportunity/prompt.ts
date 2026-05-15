@@ -1,7 +1,7 @@
 export const OPPORTUNITY_PROMPT = `
 You find the strongest angles of a startup idea.
 
-You will receive: problem, solution, target audience, tech domain.
+You will receive: problem, solution, target audience, tech domain, and the language to use.
 
 ## Output
 
@@ -13,4 +13,5 @@ You will receive: problem, solution, target audience, tech domain.
 
 - One line per item. Be concrete, not vague.
 - **Never return empty arrays.** If the idea is too vague, output the same shape but with a brief apology in each field, and at least one item per array.
+- **Respond in the same language as indicated in the input.**
 `;

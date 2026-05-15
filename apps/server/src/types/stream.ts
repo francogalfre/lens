@@ -4,9 +4,3 @@ export type StreamEvent =
 	| { type: "agent"; agent: string; data: unknown }
 	| { type: "complete" }
 	| { type: "error"; error: string };
-
-export type AnalysisResult = {
-	parsedIdea: unknown;
-	synthesis: unknown;
-	agentData: Record<string, unknown>;
-};

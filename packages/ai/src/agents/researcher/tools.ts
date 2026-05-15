@@ -4,6 +4,7 @@ import { z } from "zod";
 export const validateUrl = tool(
 	async ({ url }): Promise<string> => {
 		const controller = new AbortController();
+		const timeout = setTimeout(() => controller.abort(), 3000);
 
 		try {
 			const response = await fetch(url, {
@@ -17,6 +18,8 @@ export const validateUrl = tool(
 				: "invalid";
 		} catch {
 			return "invalid";
+		} finally {
+			clearTimeout(timeout);
 		}
 	},
 	{

@@ -14,7 +14,7 @@ export async function runResearcher(
 	idea: string,
 	config?: RunnableConfig,
 ): Promise<ResearchResult> {
-	const model = createModel(800);
+	const model = createModel(1500);
 
 	const researcherAgent = createAgent({
 		name: "Researcher Agent",
@@ -25,10 +25,32 @@ export async function runResearcher(
 		middleware: createAgentMiddleware("Researcher Agent"),
 	});
 
-	const result = await researcherAgent.invoke(
-		{ messages: [{ role: "user", content: idea }] },
-		config,
-	);
+	try {
+		const result = await researcherAgent.invoke(
+			{ messages: [{ role: "user", content: idea }] },
+			config,
+		);
 
-	return result.structuredResponse;
+		if (result.structuredResponse) {
+			return result.structuredResponse;
+		}
+	} catch (error) {
+		console.warn(
+			"[Researcher Agent] error:",
+			error instanceof Error ? error.message : String(error),
+		);
+	}
+
+	return {
+		competitors: [
+			{
+				name: "No competitors found",
+				description: "Could not find market data",
+				url: "",
+			},
+		],
+		marketContext: "Market data unavailable",
+		searchQueries: [],
+		opportunities: [],
+	};
 }

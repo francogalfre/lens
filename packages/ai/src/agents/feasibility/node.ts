@@ -12,7 +12,7 @@ export const feasibilityNode = async (state: State, config: RunnableConfig) => {
 
 	return {
 		feasibility: await runFeasibility(
-			buildIdeaContext(state.rawIdea, state.parsedIdea),
+			buildIdeaContext(state.rawIdea, state.parsedIdea, state.language),
 			config,
 		),
 		completedAgents: ["feasibility"],

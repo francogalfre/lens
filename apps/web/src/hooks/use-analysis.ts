@@ -3,29 +3,22 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
-import {
-	AGENT_ORDER,
-	type AgentState,
-	type Status,
-	type StreamEvent,
-	type SynthesisResult,
+
+import type {
+	AgentState,
+	Status,
+	SynthesisResult,
+	UseAnalysisReturn,
 } from "@/hooks/analysis.types";
+import {
+	createInitialAgents,
+	useStreamEventHandler,
+} from "@/hooks/use-analysis-event-handler";
+import { consumeAnalysisStream } from "@/hooks/use-analysis-stream";
 import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/lib/trpc";
 
-interface UseAnalysisReturn {
-	status: Status;
-	agents: AgentState[];
-	synthesis: SynthesisResult | null;
-	errorMsg: string | null;
-	isRunning: boolean;
-	isComplete: boolean;
-	limitReached: boolean;
-	submitIdea: (idea: string) => Promise<void>;
-	reset: () => void;
-}
-
-export function useAnalysis(): UseAnalysisReturn {
+export const useAnalysis = (): UseAnalysisReturn => {
 	const [status, setStatus] = useState<Status>("idle");
 	const [agents, setAgents] = useState<AgentState[]>([]);
 	const [synthesis, setSynthesis] = useState<SynthesisResult | null>(null);
@@ -37,74 +30,12 @@ export function useAnalysis(): UseAnalysisReturn {
 	const { data: session, isPending: isSessionPending } =
 		authClient.useSession();
 
-	const isRunning = status === "running";
-	const isComplete = status === "complete";
-
-	const initAgents = useCallback(() => {
-		return AGENT_ORDER.map((name) => ({
-			name,
-			status: "pending" as const,
-			data: null,
-			messages: [] as AgentState["messages"],
-		}));
-	}, []);
-
-	const handleEvent = useCallback(
-		(event: StreamEvent) => {
-			if (event.type === "start") {
-				setAgents(initAgents());
-				return;
-			}
-
-			if (event.type === "nodeStart" && event.agent) {
-				const agentName = event.agent;
-				setAgents((prev) =>
-					prev.map((a) =>
-						a.name === agentName ? { ...a, status: "running" } : a,
-					),
-				);
-				return;
-			}
-
-			if (event.type === "agent" && event.agent) {
-				const agentName = event.agent;
-				const data = event.data as Record<string, Record<string, unknown>>;
-
-				if (
-					agentName === "parser_agent" &&
-					data?.parser_agent?.validationError
-				) {
-					setAgents((prev) =>
-						prev
-							.filter((a) => a.name === "parser_agent")
-							.map((a) => ({ ...a, status: "complete" as const, data })),
-					);
-					return;
-				}
-
-				setAgents((prev) =>
-					prev.map((a) =>
-						a.name === agentName ? { ...a, status: "complete", data } : a,
-					),
-				);
-
-				if (agentName === "synthesis_agent") {
-					const synthPayload = (data as Record<string, unknown>)
-						?.synthesis_agent as { synthesis?: SynthesisResult } | undefined;
-					if (synthPayload?.synthesis) {
-						setSynthesis(synthPayload.synthesis);
-					}
-				}
-				return;
-			}
-
-			if (event.type === "error") {
-				setErrorMsg(event.error ?? "Unknown error");
-				setStatus("error");
-			}
-		},
-		[initAgents],
-	);
+	const handleEvent = useStreamEventHandler({
+		setAgents,
+		setSynthesis,
+		setErrorMsg,
+		setStatus,
+	});
 
 	const submitIdea = useCallback(
 		async (rawIdea: string) => {
@@ -118,7 +49,7 @@ export function useAnalysis(): UseAnalysisReturn {
 			if (isSessionPending) return;
 
 			setStatus("running");
-			setAgents([]);
+			setAgents(createInitialAgents());
 			setSynthesis(null);
 			setErrorMsg(null);
 
@@ -134,51 +65,31 @@ export function useAnalysis(): UseAnalysisReturn {
 					router.push("/login?callbackUrl=/analyze");
 					return;
 				}
-
 				if (response.status === 429) {
 					setLimitReached(true);
 					setStatus("error");
 					return;
 				}
-
 				if (!response.ok || !response.body) {
 					throw new Error("Failed to connect to analysis service");
 				}
 
-				const reader = response.body.getReader();
-				const decoder = new TextDecoder();
-				let buffer = "";
+				queryClient.invalidateQueries({
+					queryKey: trpc.subscription.getStatus.queryKey(),
+				});
 
-				while (true) {
-					const { done, value } = await reader.read();
-					if (done) break;
-
-					buffer += decoder.decode(value, { stream: true });
-					const lines = buffer.split("\n");
-					buffer = lines.pop() ?? "";
-
-					for (const line of lines) {
-						if (!line.trim()) continue;
-						try {
-							const event = JSON.parse(line) as StreamEvent;
-							handleEvent(event);
-						} catch {
-							// skip malformed lines
-						}
-					}
-				}
+				await consumeAnalysisStream(response.body, handleEvent);
 
 				setStatus("complete");
-
 				queryClient.invalidateQueries({
 					queryKey: trpc.dashboard.listAnalyses.queryKey(),
 				});
 				queryClient.invalidateQueries({
 					queryKey: trpc.subscription.getStatus.queryKey(),
 				});
-			} catch (err) {
+			} catch (error) {
 				setErrorMsg(
-					err instanceof Error ? err.message : "Something went wrong",
+					error instanceof Error ? error.message : "Something went wrong",
 				);
 				setStatus("error");
 			}
@@ -199,10 +110,10 @@ export function useAnalysis(): UseAnalysisReturn {
 		agents,
 		synthesis,
 		errorMsg,
-		isRunning,
-		isComplete,
+		isRunning: status === "running",
+		isComplete: status === "complete",
 		limitReached,
 		submitIdea,
 		reset,
 	};
-}
+};

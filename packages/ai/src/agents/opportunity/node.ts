@@ -12,7 +12,7 @@ export const opportunityNode = async (state: State, config: RunnableConfig) => {
 
 	return {
 		opportunities: await runOpportunity(
-			buildIdeaContext(state.rawIdea, state.parsedIdea),
+			buildIdeaContext(state.rawIdea, state.parsedIdea, state.language),
 			config,
 		),
 		completedAgents: ["opportunity"],

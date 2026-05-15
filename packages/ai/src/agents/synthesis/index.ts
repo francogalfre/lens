@@ -16,7 +16,7 @@ export async function runSynthesis(
 	input: SynthesisInput,
 	config?: RunnableConfig,
 ): Promise<SynthesisResult> {
-	const model = createModel(800);
+	const model = createModel(800, 0.5);
 
 	const synthesisAgent = createAgent({
 		name: "Synthesis Agent",

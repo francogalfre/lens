@@ -1,5 +1,17 @@
 export type Status = "idle" | "running" | "complete" | "error";
 
+export interface UseAnalysisReturn {
+	status: Status;
+	agents: AgentState[];
+	synthesis: SynthesisResult | null;
+	errorMsg: string | null;
+	isRunning: boolean;
+	isComplete: boolean;
+	limitReached: boolean;
+	submitIdea: (idea: string) => Promise<void>;
+	reset: () => void;
+}
+
 export interface StreamEvent {
 	type: "start" | "nodeStart" | "agent" | "complete" | "error";
 	sessionId?: string;

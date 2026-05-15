@@ -8,6 +8,7 @@ import { useParams, useRouter } from "next/navigation";
 
 import { Footer } from "@/components/layout/footer";
 import { trpc } from "@/lib/trpc";
+import { InProgressBadge } from "../components/status-badge";
 import { Field } from "./components/field";
 import { SynthesisCard } from "./components/synthesis-card";
 
@@ -51,7 +52,10 @@ function AnalysisDetail({ id }: { id: string }) {
 				transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
 				className="rounded-2xl border border-border bg-card/40 p-6"
 			>
-				<span className="text-[11px] text-foreground/45">Original idea</span>
+				<div className="flex items-center justify-between gap-3">
+					<span className="text-[11px] text-foreground/45">Original idea</span>
+					{!synthesis && <InProgressBadge />}
+				</div>
 				<p className="mt-1.5 text-balance text-[15px] text-foreground leading-relaxed">
 					{analysisData.rawIdea}
 				</p>
